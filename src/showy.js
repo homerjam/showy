@@ -10,23 +10,25 @@ class Showy {
       this.container = this.config.container;
     }
 
-    this.imageMap = {};
-    this.videoMap = {};
-    this.slideContentMap = {};
+    this._slides = this.config.slides;
+    this._currentSlideIndex = 0;
+    this._imageMap = {};
+    this._videoMap = {};
+    this._slideContentMap = {};
 
     this.createCanvas();
-
-    this.slides = this.config.slides;
 
     window.addEventListener('resize', event => {
       this.resize();
 
-      this.drawSlide(this.slides[this.index]);
+      this.drawSlide(this._slides[this._currentSlideIndex]);
     });
 
-    this.index = 0;
-
     this.animate();
+  }
+
+  nextSlide() {
+    this._currentSlideIndex = this._currentSlideIndex < this._slides.length - 1 ? this._currentSlideIndex + 1 : 0;
   }
 
   animate(skip) {
@@ -35,7 +37,7 @@ class Showy {
     });
 
     if (!skip) {
-      this.drawSlide(this.slides[this.index]);
+      this.drawSlide(this._slides[this._currentSlideIndex]);
     }
   }
 
@@ -60,15 +62,21 @@ class Showy {
   }
 
   resize() {
-    this.scale = window.devicePixelRatio;
-    this.canvas.width = this.container.clientWidth * this.scale;
-    this.canvas.height = this.container.clientHeight * this.scale;
+    this._scale = window.devicePixelRatio;
+    this.canvas.width = this.container.clientWidth * this._scale;
+    this.canvas.height = this.container.clientHeight * this._scale;
   }
 
   drawSlide(slide) {
+    if (this._oldCurrentSlideIndex !== this._currentSlideIndex) {
+      this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+
     if (slide.content.length) {
       this.drawSlideContent(0, slide);
     }
+
+    this._oldCurrentSlideIndex = this._currentSlideIndex;
   }
 
   drawSlideContent(index, slide) {
@@ -124,31 +132,32 @@ class Showy {
       y: pixels[1] * scale,
       width: pixels[2] * scale,
       height: pixels[3] * scale,
-      ratio: pixels[2] / pixels[3],
-      inverseRatio: pixels[3] / pixels[2],
     };
   }
 
   updateCoords(src, dst, scaleMode) {
+    const srcRatio = src.width / src.height;
+    const dstRatio = dst.width / dst.height;
+
     if (scaleMode && scaleMode === 'fill') {
-      if (src.ratio < dst.ratio) {
+      if (srcRatio < dstRatio) {
         const newHeight = dst.height * (src.width / dst.width);
         src.y = src.y + ((src.height - newHeight) * 0.5);
         src.height = newHeight;
       }
-      if (src.ratio > dst.ratio) {
+      if (srcRatio > dstRatio) {
         const newWidth = dst.width * (src.height / dst.height);
         src.x = src.x + ((src.width - newWidth) * 0.5);
         src.width = newWidth;
       }
     } else {
-      if (src.ratio > dst.ratio) {
-        const newHeight = dst.width * src.inverseRatio;
+      if (srcRatio > dstRatio) {
+        const newHeight = dst.width * (src.height / src.width);
         dst.y = dst.y + ((dst.height - newHeight) * 0.5);
         dst.height = newHeight;
       }
-      if (src.ratio < dst.ratio) {
-        const newWidth = dst.height * src.ratio;
+      if (srcRatio < dstRatio) {
+        const newWidth = dst.height * srcRatio;
         dst.x = dst.x + ((dst.width - newWidth) * 0.5);
         dst.width = newWidth;
       }
@@ -168,6 +177,36 @@ class Showy {
     };
   }
 
+  getTile(dst, size) {
+    return {
+      x: dst.x,
+      y: dst.y,
+      width: size[0] <= 1 ? dst.width * size[0] : size[0],
+      height: size[1] <= 1 ? dst.height * size[1] : size[1],
+    };
+  }
+
+  drawTiles(dst, tile, callback) {
+    const rows = Math.ceil(dst.height / tile.height);
+    const columns = Math.ceil(dst.width / tile.width);
+    let row = 0;
+    let column = 0;
+    const totalTiles = rows * columns;
+
+    for (let i = 0; i < totalTiles; i++) {
+      callback({
+        x: tile.x + (column * tile.width),
+        y: tile.y + (row * tile.height),
+      });
+
+      if (column === columns - 1) {
+        row++;
+      }
+
+      column = column < columns - 1 ? column + 1 : 0;
+    }
+  }
+
   getImageData(image, x, y, width, height) {
     const tempCanvas = document.createElement('canvas');
     tempCanvas.width = image.naturalWidth;
@@ -178,15 +217,15 @@ class Showy {
   }
 
   getImage(imageUrl, callback) {
-    if (this.imageMap[imageUrl]) {
-      callback(this.imageMap[imageUrl]);
+    if (this._imageMap[imageUrl]) {
+      callback(this._imageMap[imageUrl]);
       return;
     }
 
     const image = new Image();
     image.src = imageUrl;
     image.onload = event => {
-      this.imageMap[imageUrl] = image;
+      this._imageMap[imageUrl] = image;
       callback(image);
     };
   }
@@ -194,8 +233,8 @@ class Showy {
   _drawImage(image, src, dst, callback) {
     const resizedImageKey = JSON.stringify(dst);
 
-    if (this.slideContentMap[resizedImageKey]) {
-      callback(this.slideContentMap[resizedImageKey]);
+    if (this._slideContentMap[resizedImageKey]) {
+      callback(this._slideContentMap[resizedImageKey]);
       return;
     }
 
@@ -213,9 +252,9 @@ class Showy {
     }, (error, buffer) => {
       const resizedImageData = new ImageData(new Uint8ClampedArray(buffer), dst.width, dst.height);
 
-      this.slideContentMap[resizedImageKey] = resizedImageData;
+      this._slideContentMap[resizedImageKey] = resizedImageData;
 
-      callback(this.slideContentMap[resizedImageKey]);
+      callback(this._slideContentMap[resizedImageKey]);
     });
   }
 
@@ -226,11 +265,26 @@ class Showy {
         y: 0,
         width: image.naturalWidth,
         height: image.naturalHeight,
-        ratio: image.naturalWidth / image.naturalHeight,
-        inverseRatio: image.naturalHeight / image.naturalWidth,
       };
 
-      let dst = this.position2Pixels(object.position, this.scale);
+      let dst = this.position2Pixels(object.position, this._scale);
+
+      if (object.tile) {
+        let tile = this.getTile(dst, object.tile.size);
+
+        const updatedCoords = this.updateCoords(src, tile, object.tile.scaleMode);
+
+        this._drawImage(image, updatedCoords.src, updatedCoords.dst, resizedImageData => {
+
+          this.drawTiles(dst, updatedCoords.dst, tileCoord => {
+            this.context.putImageData(resizedImageData, tileCoord.x, tileCoord.y);
+          });
+
+          callback();
+        });
+
+        return;
+      }
 
       const updatedCoords = this.updateCoords(src, dst, object.scaleMode);
 
@@ -257,8 +311,8 @@ class Showy {
   getVideo(sources, callback) {
     const videoKey = JSON.stringify(sources);
 
-    if (this.videoMap[videoKey]) {
-      callback(this.videoMap[videoKey]);
+    if (this._videoMap[videoKey]) {
+      callback(this._videoMap[videoKey]);
       return;
     }
 
@@ -277,7 +331,7 @@ class Showy {
       video.appendChild(_source);
     });
 
-    this.videoMap[videoKey] = video;
+    this._videoMap[videoKey] = video;
 
     video.addEventListener('play', () => {
       callback(video);
@@ -295,11 +349,23 @@ class Showy {
         y: 0,
         width: video.videoWidth,
         height: video.videoHeight,
-        ratio: video.videoWidth / video.videoHeight,
-        inverseRatio: video.videoHeight / video.videoWidth,
       };
 
-      let dst = this.position2Pixels(object.position, this.scale);
+      let dst = this.position2Pixels(object.position, this._scale);
+
+      if (object.tile) {
+        let tile = this.getTile(dst, object.tile.size);
+
+        const updatedCoords = this.updateCoords(src, tile, object.tile.scaleMode);
+
+        this.drawTiles(dst, updatedCoords.dst, tileCoord => {
+          this.context.drawImage(video, src.x, src.y, src.width, src.height, tileCoord.x, tileCoord.y, tile.width, tile.height);
+        });
+
+        callback();
+
+        return;
+      }
 
       const updatedCoords = this.updateCoords(src, dst, object.scaleMode);
 

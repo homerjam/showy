@@ -1,6 +1,7 @@
 var path = require('path');
 
 module.exports = {
+  devtool: 'source-map',
   entry: ['babel-polyfill', './showy.webpack.js'],
   output: {
     path: path.resolve(__dirname, 'dist'),
