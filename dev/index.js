@@ -87,7 +87,7 @@ var config = {
           ],
           position: [0, 0, 1, 1], // [x, y, x2, y2] either percentage based or...
           // position: [100, 100, 100, 100], // [x, y, w - x2, h - y2] ...pixels from edges
-          // scaleMode: 'fit', // fit|fill
+          scaleMode: 'fill', // fit|fill
           tile: {
             // size: [0.2, 0.2], // [w, h] either percentage based or...
             size: [200, 200], // [w, h] ...in pixels

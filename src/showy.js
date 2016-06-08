@@ -186,17 +186,34 @@ class Showy {
     };
   }
 
-  drawTiles(dst, tile, callback) {
-    const rows = Math.ceil(dst.height / tile.height);
-    const columns = Math.ceil(dst.width / tile.width);
+  drawTiles(dst, tile, scaleMode, callback) {
+    let rows;
+    let columns;
+
+    let offsetWidth = 0;
+    let offsetHeight = 0;
+
+    if (scaleMode && scaleMode === 'fill') {
+      rows = Math.ceil(dst.height / tile.height);
+      columns = Math.ceil(dst.width / tile.width);
+
+      offsetWidth = ((tile.width * columns) - dst.width) * 0.5;
+      offsetHeight = ((tile.height * rows) - dst.height) * 0.5;
+
+    } else {
+      rows = Math.floor(dst.height / tile.height);
+      columns = Math.floor(dst.width / tile.width);
+    }
+
     let row = 0;
     let column = 0;
+
     const totalTiles = rows * columns;
 
     for (let i = 0; i < totalTiles; i++) {
       callback({
-        x: tile.x + (column * tile.width),
-        y: tile.y + (row * tile.height),
+        x: tile.x + (column * tile.width) - offsetWidth,
+        y: tile.y + (row * tile.height) - offsetHeight,
       });
 
       if (column === columns - 1) {
@@ -276,7 +293,7 @@ class Showy {
 
         this._drawImage(image, updatedCoords.src, updatedCoords.dst, resizedImageData => {
 
-          this.drawTiles(dst, updatedCoords.dst, tileCoord => {
+          this.drawTiles(dst, updatedCoords.dst, object.scaleMode, tileCoord => {
             this.context.putImageData(resizedImageData, tileCoord.x, tileCoord.y);
           });
 
@@ -358,7 +375,7 @@ class Showy {
 
         const updatedCoords = this.updateCoords(src, tile, object.tile.scaleMode);
 
-        this.drawTiles(dst, updatedCoords.dst, tileCoord => {
+        this.drawTiles(dst, updatedCoords.dst, object.scaleMode, tileCoord => {
           this.context.drawImage(video, src.x, src.y, src.width, src.height, tileCoord.x, tileCoord.y, tile.width, tile.height);
         });
 
