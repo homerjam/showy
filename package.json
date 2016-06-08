@@ -18,6 +18,8 @@
   "author": "Homerjam <jameshomer85@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "gl-texture2d": "^2.0.10",
+    "glsl-transition": "^1.0.2",
     "pica": "^2.0.3"
   },
   "devDependencies": {
