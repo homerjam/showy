@@ -12,8 +12,7 @@ class Showy {
 
     this.imageMap = {};
     this.videoMap = {};
-
-    this.slideMap = {};
+    this.slideContentMap = {};
 
     this.createCanvas();
 
@@ -21,6 +20,8 @@ class Showy {
 
     window.addEventListener('resize', event => {
       this.resize();
+
+      this.drawSlide(this.slides[this.index]);
     });
 
     this.index = 0;
@@ -29,13 +30,13 @@ class Showy {
   }
 
   animate(skip) {
-    if (!skip) {
-      this.drawSlide(this.slides[this.index]);
-    }
-
     window.requestAnimationFrame(() => {
       this.animate(!skip);
     });
+
+    if (!skip) {
+      this.drawSlide(this.slides[this.index]);
+    }
   }
 
   createCanvas() {
@@ -62,22 +63,33 @@ class Showy {
     this.scale = window.devicePixelRatio;
     this.canvas.width = this.container.clientWidth * this.scale;
     this.canvas.height = this.container.clientHeight * this.scale;
-  // this.context.scale(this.scale, this.scale);
   }
 
   drawSlide(slide) {
-    slide.content.forEach(object => {
-      switch (object.type) {
-        case 'image':
-          this.drawImage(object);
-          break;
-        case 'video':
-          this.drawVideo(object);
-          break;
-        default:
-          throw new Error('Unknown slide type');
-      }
-    });
+    if (slide.content.length) {
+      this.drawSlideContent(0, slide);
+    }
+  }
+
+  drawSlideContent(index, slide) {
+    const object = slide.content[index];
+
+    if (!object) {
+      return;
+    }
+
+    const callback = this.drawSlideContent.bind(this, index + 1, slide);
+
+    switch (object.type) {
+      case 'image':
+        this.drawImage(object, callback);
+        break;
+      case 'video':
+        this.drawVideo(object, callback);
+        break;
+      default:
+        throw new Error('Unknown content type');
+    }
   }
 
   position2Pixels(position, scale = 1) {
@@ -117,13 +129,52 @@ class Showy {
     };
   }
 
-  getImageData(image) {
+  updateCoords(src, dst, scaleMode) {
+    if (scaleMode && scaleMode === 'fill') {
+      if (src.ratio < dst.ratio) {
+        const newHeight = dst.height * (src.width / dst.width);
+        src.y = src.y + ((src.height - newHeight) * 0.5);
+        src.height = newHeight;
+      }
+      if (src.ratio > dst.ratio) {
+        const newWidth = dst.width * (src.height / dst.height);
+        src.x = src.x + ((src.width - newWidth) * 0.5);
+        src.width = newWidth;
+      }
+    } else {
+      if (src.ratio > dst.ratio) {
+        const newHeight = dst.width * src.inverseRatio;
+        dst.y = dst.y + ((dst.height - newHeight) * 0.5);
+        dst.height = newHeight;
+      }
+      if (src.ratio < dst.ratio) {
+        const newWidth = dst.height * src.ratio;
+        dst.x = dst.x + ((dst.width - newWidth) * 0.5);
+        dst.width = newWidth;
+      }
+    }
+
+    // Round properties for pica
+    const roundProps = ['x', 'y', 'width', 'height'];
+
+    roundProps.forEach(prop => {
+      src[prop] = Math.round(src[prop]);
+      dst[prop] = Math.round(dst[prop]);
+    });
+
+    return {
+      src,
+      dst,
+    };
+  }
+
+  getImageData(image, x, y, width, height) {
     const tempCanvas = document.createElement('canvas');
     tempCanvas.width = image.naturalWidth;
     tempCanvas.height = image.naturalHeight;
     const tempContext = tempCanvas.getContext('2d');
     tempContext.drawImage(image, 0, 0, image.naturalWidth, image.naturalHeight);
-    return tempContext.getImageData(0, 0, image.naturalWidth, image.naturalHeight).data;
+    return tempContext.getImageData(x, y, width, height).data;
   }
 
   getImage(imageUrl, callback) {
@@ -143,18 +194,18 @@ class Showy {
   _drawImage(image, src, dst, callback) {
     const resizedImageKey = JSON.stringify(dst);
 
-    if (this.slideMap[resizedImageKey]) {
-      callback(this.slideMap[resizedImageKey]);
+    if (this.slideContentMap[resizedImageKey]) {
+      callback(this.slideContentMap[resizedImageKey]);
       return;
     }
 
     pica.resizeBuffer({
-      src: this.getImageData(image),
+      src: this.getImageData(image, src.x, src.y, src.width, src.height),
       width: src.width,
       height: src.height,
       toWidth: dst.width,
       toHeight: dst.height,
-      quality: 3,
+      quality: 1,
       alpha: false,
       unsharpAmount: 0,
       unsharpRadius: 0.5,
@@ -162,15 +213,15 @@ class Showy {
     }, (error, buffer) => {
       const resizedImageData = new ImageData(new Uint8ClampedArray(buffer), dst.width, dst.height);
 
-      this.slideMap[resizedImageKey] = resizedImageData;
+      this.slideContentMap[resizedImageKey] = resizedImageData;
 
-      callback(this.slideMap[resizedImageKey]);
+      callback(this.slideContentMap[resizedImageKey]);
     });
   }
 
-  drawImage(object) {
+  drawImage(object, callback) {
     this.getImage(object.url, image => {
-      const src = {
+      let src = {
         x: 0,
         y: 0,
         width: image.naturalWidth,
@@ -179,26 +230,17 @@ class Showy {
         inverseRatio: image.naturalHeight / image.naturalWidth,
       };
 
-      const dst = this.position2Pixels(object.position, this.scale);
+      let dst = this.position2Pixels(object.position, this.scale);
 
-      if (object.scaleMode && object.scaleMode === 'fill') {
-        if (src.ratio < dst.ratio) {
-          src.height = src.height * dst.inverseRatio;
-        }
-        if (src.ratio > dst.ratio) {
-          src.width = src.width * dst.ratio;
-        }
-      } else {
-        if (src.ratio > dst.ratio) {
-          dst.height = dst.width * src.inverseRatio;
-        }
-        if (src.ratio < dst.ratio) {
-          dst.width = dst.height * src.ratio;
-        }
-      }
+      const updatedCoords = this.updateCoords(src, dst, object.scaleMode);
+
+      src = updatedCoords.src;
+      dst = updatedCoords.dst;
 
       this._drawImage(image, src, dst, resizedImageData => {
         this.context.putImageData(resizedImageData, dst.x, dst.y);
+
+        callback();
       });
     });
   }
@@ -242,13 +284,13 @@ class Showy {
     });
   }
 
-  drawVideo(object) {
+  drawVideo(object, callback) {
     this.getVideo(object.sources, video => {
       if (video.videoWidth === 0 || video.videoHeight === 0) {
         return;
       }
 
-      const src = {
+      let src = {
         x: 0,
         y: 0,
         width: video.videoWidth,
@@ -257,25 +299,16 @@ class Showy {
         inverseRatio: video.videoHeight / video.videoWidth,
       };
 
-      const dst = this.position2Pixels(object.position, this.scale);
+      let dst = this.position2Pixels(object.position, this.scale);
 
-      if (object.scaleMode && object.scaleMode === 'fill') {
-        if (src.ratio < dst.ratio) {
-          src.height = src.height * dst.inverseRatio;
-        }
-        if (src.ratio > dst.ratio) {
-          src.width = src.width * dst.ratio;
-        }
-      } else {
-        if (src.ratio > dst.ratio) {
-          dst.height = dst.width * src.inverseRatio;
-        }
-        if (src.ratio < dst.ratio) {
-          dst.width = dst.height * src.ratio;
-        }
-      }
+      const updatedCoords = this.updateCoords(src, dst, object.scaleMode);
+
+      src = updatedCoords.src;
+      dst = updatedCoords.dst;
 
       this.context.drawImage(video, src.x, src.y, src.width, src.height, dst.x, dst.y, dst.width, dst.height);
+
+      callback();
     });
   }
 }
