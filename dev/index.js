@@ -25,21 +25,6 @@ var config = {
           },
         },
         {
-          type: 'image',
-          url: 'dev/assets/carpark.jpg', // string or...
-          // url: function() { // ...function returning a string
-          //   return 'assets/carpark.jpg',
-          // },
-          position: [0.6, 50, 0.95, 0.35], // [x, y, x2, y2] either percentage based or...
-          // position: [100, 100, 100, 100], // [x, y, w - x2, h - y2] ...pixels from edges
-          scaleMode: 'fit', // fit|fill
-          tile: {
-            size: [0.2, 0.2], // [w, h] either percentage based or...
-            // size: [100, 100], // [w, h] ...in pixels
-            scaleMode: 'fill', // fit|fill
-          },
-        },
-        {
           type: 'video',
           sources: [
             {
@@ -47,12 +32,42 @@ var config = {
               type: 'video/mp4', // optional - detect from url?
             },
           ],
-          position: [0, 0, 0.5, 1], // [x, y, x2, y2] either percentage based or...
+          position: [0.2, 0.2, 0.8, 0.8], // [x, y, x2, y2] either percentage based or...
           // position: [100, 100, 100, 100], // [x, y, w - x2, h - y2] ...pixels from edges
           scaleMode: 'fit', // fit|fill
           tile: {
             // size: [0.2, 0.2], // [w, h] either percentage based or...
             size: [100, 100], // [w, h] ...in pixels
+            scaleMode: 'fit', // fit|fill
+          },
+        },
+        {
+          type: 'image',
+          url: 'dev/assets/carpark.jpg', // string or...
+          // url: function() { // ...function returning a string
+          //   return 'assets/carpark.jpg',
+          // },
+          position: [0.4, 50, 0.95, 0.35], // [x, y, x2, y2] either percentage based or...
+          // position: [100, 100, 100, 100], // [x, y, w - x2, h - y2] ...pixels from edges
+          scaleMode: 'fill', // fit|fill
+          tile: {
+            size: [0.2, 0.2], // [w, h] either percentage based or...
+            // size: [100, 100], // [w, h] ...in pixels
+            scaleMode: 'fit', // fit|fill
+          },
+        },
+        {
+          type: 'image',
+          url: 'dev/assets/carpark.jpg', // string or...
+          // url: function() { // ...function returning a string
+          //   return 'assets/carpark.jpg',
+          // },
+          position: [0.8, 50, 0.95, 50], // [x, y, x2, y2] either percentage based or...
+          // position: [100, 100, 100, 100], // [x, y, w - x2, h - y2] ...pixels from edges
+          scaleMode: 'fill', // fit|fill
+          tile: {
+            size: [0.2, 0.2], // [w, h] either percentage based or...
+            // size: [100, 100], // [w, h] ...in pixels
             scaleMode: 'fit', // fit|fill
           },
         },
