@@ -3,10 +3,12 @@ var config = {
   autoplay: true,
   loop: true,
   duration: 2000,
-  transition: 'fade',
+  transition: 'dreamy',
+  transitionSpeed: 3000,
   slides: [
     {
       duration: 2000, // optional
+      transitionSpeed: 1000,
       transition: 'fade', // optional
       content: [
         {
@@ -76,6 +78,8 @@ var config = {
     {
       duration: 2000, // optional
       transition: 'fade', // optional
+      transitionSpeed: 3000,
+      transitionEase: 'bounceOut',
       content: [
         {
           type: 'video',
@@ -111,6 +115,44 @@ var config = {
         },
       ],
     },
+    {
+      duration: 2000, // optional
+      transition: 'fade', // optional
+      content: [
+        {
+          type: 'video',
+          sources: [
+            {
+              url: 'dev/assets/surfer.mp4',
+              type: 'video/mp4', // optional - detect from url?
+            },
+          ],
+          position: [0, 0, 1, 1], // [x, y, x2, y2] either percentage based or...
+          // position: [100, 100, 100, 100], // [x, y, w - x2, h - y2] ...pixels from edges
+          scaleMode: 'fill', // fit|fill
+          // tile: {
+          //   // size: [0.2, 0.2], // [w, h] either percentage based or...
+          //   size: [200, 200], // [w, h] ...in pixels
+          //   scaleMode: 'fill', // fit|fill
+          // },
+        },
+        {
+          type: 'image',
+          url: 'dev/assets/hanger.jpg', // string or...
+          // url: function() { // ...function returning a string
+          //   return 'assets/carpark.jpg',
+          // },
+          position: [0.25, 100, 0.75, 100], // [x, y, x2, y2] either percentage based or...
+          // position: [100, 100, 100, 100], // [x, y, w - x2, h - y2] ...pixels from edges
+          scaleMode: 'fit', // fit|fill
+          tile: {
+            size: [50, 50], // [w, h] either percentage based or...
+            // size: [100, 100], // [w, h] ...in pixels
+            scaleMode: 'fit', // fit|fill
+          },
+        },
+      ],
+    },
   ],
 };
 
@@ -122,4 +164,13 @@ console.log(showy);
 
 document.body.addEventListener('click', function (event) {
   showy.nextSlide();
+});
+
+document.body.addEventListener('keydown', function (event) {
+  if (event.keyCode === 39) {
+    showy.nextSlide();
+  }
+  if (event.keyCode === 37) {
+    showy.prevSlide();
+  }
 });

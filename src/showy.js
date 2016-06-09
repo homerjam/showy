@@ -1,11 +1,13 @@
-const CubeTransition = { // from "glsl-transitions"
-  "glsl" : "#ifdef GL_ES\nprecision highp float;\n#endif\nuniform sampler2D from, to;\nuniform float progress;\nuniform vec2 resolution;\n\nuniform float persp;\nuniform float unzoom;\nuniform float reflection;\nuniform float floating;\n\nvec2 project (vec2 p) {\n  return p * vec2(1.0, -1.2) + vec2(0.0, -floating/100.);\n}\n\nbool inBounds (vec2 p) {\n  return all(lessThan(vec2(0.0), p)) && all(lessThan(p, vec2(1.0)));\n}\n\nvec4 bgColor (vec2 p, vec2 pfr, vec2 pto) {\n  vec4 c = vec4(0.0, 0.0, 0.0, 1.0);\n  pfr = project(pfr);\n  if (inBounds(pfr)) {\n    c += mix(vec4(0.0), texture2D(from, pfr), reflection * mix(1.0, 0.0, pfr.y));\n  }\n  pto = project(pto);\n  if (inBounds(pto)) {\n    c += mix(vec4(0.0), texture2D(to, pto), reflection * mix(1.0, 0.0, pto.y));\n  }\n  return c;\n}\n\n// p : the position\n// persp : the perspective in [ 0, 1 ]\n// center : the xcenter in [0, 1] \\ 0.5 excluded\nvec2 xskew (vec2 p, float persp, float center) {\n  float x = mix(p.x, 1.0-p.x, center);\n  return (\n    (\n      vec2( x, (p.y - 0.5*(1.0-persp) * x) / (1.0+(persp-1.0)*x) )\n      - vec2(0.5-distance(center, 0.5), 0.0)\n    )\n    * vec2(0.5 / distance(center, 0.5) * (center<0.5 ? 1.0 : -1.0), 1.0)\n    + vec2(center<0.5 ? 0.0 : 1.0, 0.0)\n  );\n}\n\nvoid main() {\n  vec2 op = gl_FragCoord.xy / resolution.xy;\n  float uz = unzoom * 2.0*(0.5-distance(0.5, progress));\n  vec2 p = -uz*0.5+(1.0+uz) * op;\n  vec2 fromP = xskew(\n    (p - vec2(progress, 0.0)) / vec2(1.0-progress, 1.0),\n    1.0-mix(progress, 0.0, persp),\n    0.0\n  );\n  vec2 toP = xskew(\n    p / vec2(progress, 1.0),\n    mix(pow(progress, 2.0), 1.0, persp),\n    1.0\n  );\n  if (inBounds(fromP)) {\n    gl_FragColor = texture2D(from, fromP);\n  }\n  else if (inBounds(toP)) {\n    gl_FragColor = texture2D(to, toP);\n  }\n  else {\n    gl_FragColor = bgColor(op, fromP, toP);\n  }\n}",
-  "uniforms": { "persp": 0.7, "unzoom": 0.3, "reflection": 0.4, "floating": 3.0 }
-};
+const TRANSITION_FORWARDS = 'forwards';
+const TRANSITION_BACKWARDS = 'backwards';
+const SKIP_ALTERNATE_FRAMES = false;
 
 class Showy {
   constructor(config) {
-    const defaultConfig = {};
+    const defaultConfig = {
+      transitionSpeed: 2000,
+      transitionEase: 'linear',
+    };
 
     this.config = Object.assign({}, defaultConfig, config);
 
@@ -16,24 +18,27 @@ class Showy {
     }
 
     this._slides = this.config.slides;
-    this._currentSlideIndex = this._previousSlideIndex = 0;
+    this._currentSlideIndex = this._transitionToIndex = 0;
+    this._transitionProgress = 0;
     this._imageMap = {};
     this._videoMap = {};
     this._slideContentMap = {};
 
-    this.createCanvas();
+    this.createCanvases();
 
-    window.addEventListener('resize', event => {
-      this.resize();
-
-      this.drawSlide();
-    });
+    window.addEventListener('resize', this.resize.bind(this));
 
     this.animate();
   }
 
   nextSlide() {
-    this._currentSlideIndex = this._currentSlideIndex < this._slides.length - 1 ? this._currentSlideIndex + 1 : 0;
+    this._transitionDirection = TRANSITION_FORWARDS;
+    this._transitionToIndex = this._currentSlideIndex === this._slides.length - 1 ? 0 : this._currentSlideIndex + 1;
+  }
+
+  prevSlide() {
+    this._transitionDirection = TRANSITION_BACKWARDS;
+    this._transitionToIndex = this._currentSlideIndex === 0 ? this._slides.length - 1 : this._currentSlideIndex - 1;
   }
 
   animate(time, skip) {
@@ -41,9 +46,9 @@ class Showy {
       this.animate(time, !skip);
     });
 
-    // if (!skip) {
-      this.drawSlide(time);
-    // }
+    if (!(skip && SKIP_ALTERNATE_FRAMES)) {
+      this.drawSlides(time);
+    }
   }
 
   _createCanvas() {
@@ -51,34 +56,47 @@ class Showy {
     canvas.style.position = 'absolute';
     canvas.style.width = '100%';
     canvas.style.height = '100%';
-    this._resize(canvas);
+    this._resizeCanvas(canvas);
     return canvas;
   }
 
-  createCanvas() {
-    if (this.canvas) {
-      this.container.removeChild(this.canvas);
-    }
+  createCanvases() {
+    this.currentCanvas = this._createCanvas();
+    this.currentContext = this.currentCanvas.getContext('2d');
 
-    this.canvas = this._createCanvas();
+    this.nextCanvas = this._createCanvas();
+    this.nextContext = this.nextCanvas.getContext('2d');
 
-    this.container.appendChild(this.canvas);
+    this.prevCanvas = this._createCanvas();
+    this.prevContext = this.prevCanvas.getContext('2d');
 
-    this.context = this.canvas.getContext('2d');
+    this.renderCanvas = this._createCanvas();
+    this.renderContext = this.renderCanvas.getContext('webgl') || this.renderCanvas.getContext('experimental-webgl');
+    this.renderContext.pixelStorei(this.renderContext.UNPACK_FLIP_Y_WEBGL, true);
 
-    this.resize();
-
-    return this.canvas;
+    this.container.appendChild(this.renderCanvas);
   }
 
-  _resize(canvas) {
+  _resizeCanvas(canvas) {
     this._scale = window.devicePixelRatio;
     canvas.width = this.container.clientWidth * this._scale;
     canvas.height = this.container.clientHeight * this._scale;
   }
 
   resize() {
-    this._resize(this.canvas);
+    // Remove all cached imageData as this will be redundant now
+    this._slideContentMap = {};
+
+    this._resizeCanvas(this.currentCanvas);
+    this._resizeCanvas(this.nextCanvas);
+    this._resizeCanvas(this.prevCanvas);
+    this._resizeCanvas(this.renderCanvas);
+
+    this.drawSlides();
+  }
+
+  _clearContext(context) {
+    context.clearRect(0, 0, context.canvas.width, context.canvas.height);
   }
 
   _drawSlide(context, slide) {
@@ -87,41 +105,68 @@ class Showy {
     }
   }
 
-  drawSlide(time, slide) {
-    if (!slide) {
-      slide = this._slides[this._previousSlideIndex];
+  drawSlides(time) {
+    const transitionSpeed = this._slides[this._currentSlideIndex].transitionSpeed ? this._slides[this._currentSlideIndex].transitionSpeed : this.config.transitionSpeed;
+    const transitionEase = this._slides[this._currentSlideIndex].transitionEase ? this._slides[this._currentSlideIndex].transitionEase : this.config.transitionEase;
+    const progressIncrement = (SKIP_ALTERNATE_FRAMES ? 30 : 60) / transitionSpeed; // fps / transition in ms
+
+    const nextSlideIndex = this._currentSlideIndex === this._slides.length - 1 ? 0 : this._currentSlideIndex + 1;
+    const prevSlideIndex = this._currentSlideIndex === 0 ? this._slides.length - 1 : this._currentSlideIndex - 1;
+
+    this._drawSlide(this.currentContext, this._slides[this._currentSlideIndex]);
+    this._drawSlide(this.nextContext, this._slides[nextSlideIndex]);
+    this._drawSlide(this.prevContext, this._slides[prevSlideIndex]);
+
+    if (!this.transition) {
+      this.transition = createTransition(this.renderContext, glslTransitions[this.config.transition].glsl);
     }
 
-    if (this._previousSlideIndex !== this._currentSlideIndex) {
+    if (this.fromTexture) {
+      this.fromTexture.dispose();
+    }
 
-      if (!this.transition) {
-        const nextSlide = this._slides[this._currentSlideIndex];
-        this.toCanvas = this._createCanvas();
-        const toContext = this.toCanvas.getContext('2d');
-        this._drawSlide(toContext, nextSlide);
+    if (this.toTexture) {
+      this.toTexture.dispose();
+    }
 
-        const transitionCanvas = this._createCanvas();
-        this.gl = transitionCanvas.getContext('webgl') || transitionCanvas.getContext('experimental-webgl');
-        this.gl.pixelStorei(this.gl.UNPACK_FLIP_Y_WEBGL, true);
+    if (this._transitionToIndex !== this._currentSlideIndex) {
 
-        this.container.appendChild(transitionCanvas);
+      if (this._transitionDirection === TRANSITION_FORWARDS) {
+        this.fromTexture = createTexture(this.renderContext, this.currentCanvas);
+        this.toTexture = createTexture(this.renderContext, this.nextCanvas);
 
-        this.transition = createTransition(this.gl, CubeTransition.glsl);
+        this._transitionProgress = this._transitionProgress === 1 || this._transitionProgress === 0 ? progressIncrement : this._transitionProgress + progressIncrement;
+
+      } else {
+        this.fromTexture = createTexture(this.renderContext, this.prevCanvas);
+        this.toTexture = createTexture(this.renderContext, this.currentCanvas);
+
+        this._transitionProgress = this._transitionProgress === 1 || this._transitionProgress === 0 ? 1 - progressIncrement : this._transitionProgress - progressIncrement;
       }
 
-      const fromTexture = createTexture(this.gl, this.canvas);
-      const toTexture = createTexture(this.gl, this.toCanvas);
+      if (this._transitionProgress > 1) {
+        this._transitionProgress = 1;
+      }
+      if (this._transitionProgress < 0) {
+        this._transitionProgress = 0;
+      }
 
-      this.transition.render((time % 1500) / 1500, fromTexture, toTexture, CubeTransition.uniforms);
-
-      // this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
-      return;
+    } else {
+      this.fromTexture = createTexture(this.renderContext, this.currentCanvas);
+      this.toTexture = this.fromTexture;
     }
 
-    this._drawSlide(this.context, slide);
+    const easedTransitionProgress = eases[transitionEase](this._transitionProgress);
 
-    this._previousSlideIndex = this._currentSlideIndex;
+    this.transition.render(easedTransitionProgress, this.fromTexture, this.toTexture, glslTransitions[this.config.transition].uniforms);
+
+    if (this._transitionToIndex !== this._currentSlideIndex && (this._transitionProgress === 0 || this._transitionProgress === 1)) {
+      this._currentSlideIndex = this._transitionToIndex;
+
+      this._clearContext(this.currentContext);
+      this._clearContext(this.nextContext);
+      this._clearContext(this.prevContext);
+    }
   }
 
   drawSlideContent(context, slide, index) {
@@ -151,7 +196,7 @@ class Showy {
     position.forEach((val, index) => {
       let pixel;
 
-      let length = [this.canvas.width, this.canvas.height, this.canvas.width, this.canvas.height][index];
+      let length = [this.currentCanvas.width, this.currentCanvas.height, this.currentCanvas.width, this.currentCanvas.height][index];
 
       length /= scale;
 
@@ -208,7 +253,7 @@ class Showy {
       }
     }
 
-    // Round properties for pica
+    // Round properties for pica (and general speed up)
     const roundProps = ['x', 'y', 'width', 'height'];
 
     roundProps.forEach(prop => {
@@ -384,7 +429,7 @@ class Showy {
     video.autoplay = true;
     video.loop = true;
     video.muted = true;
-    document.body.appendChild(video);
+    this.container.appendChild(video);
 
     sources.forEach(source => {
       const _source = document.createElement('source');
