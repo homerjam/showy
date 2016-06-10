@@ -9,7 +9,6 @@ var config = {
     {
       duration: 2000, // optional
       transitionSpeed: 1000,
-      transition: 'fade', // optional
       content: [
         {
           type: 'image',
@@ -77,7 +76,7 @@ var config = {
     },
     {
       duration: 2000, // optional
-      transition: 'fade', // optional
+      transition: 'cube', // optional
       transitionSpeed: 3000,
       transitionEase: 'bounceOut',
       content: [
@@ -117,7 +116,7 @@ var config = {
     },
     {
       duration: 2000, // optional
-      transition: 'fade', // optional
+      transition: 'doorway', // optional
       content: [
         {
           type: 'video',
@@ -157,6 +156,8 @@ var config = {
 };
 
 console.log(config);
+
+console.log(glslTransitions);
 
 var showy = new (Showy.default || Showy)(config);
 

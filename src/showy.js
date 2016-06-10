@@ -5,6 +5,8 @@ const SKIP_ALTERNATE_FRAMES = false;
 class Showy {
   constructor(config) {
     const defaultConfig = {
+      container: 'body',
+      slides: [],
       transitionSpeed: 2000,
       transitionEase: 'linear',
     };
@@ -24,30 +26,35 @@ class Showy {
     this._videoMap = {};
     this._slideContentMap = {};
 
-    this.createCanvases();
+    this._createCanvases();
 
     window.addEventListener('resize', this.resize.bind(this));
 
-    this.animate();
+    this._lastFrameTime = 0;
+    window.requestAnimationFrame(this._animate.bind(this, false));
   }
 
   nextSlide() {
     this._transitionDirection = TRANSITION_FORWARDS;
     this._transitionToIndex = this._currentSlideIndex === this._slides.length - 1 ? 0 : this._currentSlideIndex + 1;
+    // this._transitionToIndex = this._transitionToIndex === this._slides.length - 1 ? 0 : this._transitionToIndex + 1;
   }
 
   prevSlide() {
     this._transitionDirection = TRANSITION_BACKWARDS;
     this._transitionToIndex = this._currentSlideIndex === 0 ? this._slides.length - 1 : this._currentSlideIndex - 1;
+    // this._transitionToIndex = this._transitionToIndex === 0 ? this._slides.length - 1 : this._transitionToIndex - 1;
   }
 
-  animate(time, skip) {
-    window.requestAnimationFrame(time => {
-      this.animate(time, !skip);
-    });
+  _animate(skipFrame, frameTime) {
+    this._fps = 1000 / (frameTime - this._lastFrameTime);
 
-    if (!(skip && SKIP_ALTERNATE_FRAMES)) {
-      this.drawSlides(time);
+    window.requestAnimationFrame(this._animate.bind(this, !skipFrame));
+
+    if (!(skipFrame && SKIP_ALTERNATE_FRAMES)) {
+      this._lastFrameTime = frameTime;
+
+      this._drawSlides();
     }
   }
 
@@ -60,21 +67,21 @@ class Showy {
     return canvas;
   }
 
-  createCanvases() {
-    this.currentCanvas = this._createCanvas();
-    this.currentContext = this.currentCanvas.getContext('2d');
+  _createCanvases() {
+    this._currentCanvas = this._createCanvas();
+    this._currentContext = this._currentCanvas.getContext('2d');
 
-    this.nextCanvas = this._createCanvas();
-    this.nextContext = this.nextCanvas.getContext('2d');
+    this._nextCanvas = this._createCanvas();
+    this._nextContext = this._nextCanvas.getContext('2d');
 
-    this.prevCanvas = this._createCanvas();
-    this.prevContext = this.prevCanvas.getContext('2d');
+    this._prevCanvas = this._createCanvas();
+    this._prevContext = this._prevCanvas.getContext('2d');
 
-    this.renderCanvas = this._createCanvas();
-    this.renderContext = this.renderCanvas.getContext('webgl') || this.renderCanvas.getContext('experimental-webgl');
-    this.renderContext.pixelStorei(this.renderContext.UNPACK_FLIP_Y_WEBGL, true);
+    this._renderCanvas = this._createCanvas();
+    this._renderContext = this._renderCanvas.getContext('webgl') || this._renderCanvas.getContext('experimental-webgl');
+    this._renderContext.pixelStorei(this._renderContext.UNPACK_FLIP_Y_WEBGL, true);
 
-    this.container.appendChild(this.renderCanvas);
+    this.container.appendChild(this._renderCanvas);
   }
 
   _resizeCanvas(canvas) {
@@ -87,61 +94,82 @@ class Showy {
     // Remove all cached imageData as this will be redundant now
     this._slideContentMap = {};
 
-    this._resizeCanvas(this.currentCanvas);
-    this._resizeCanvas(this.nextCanvas);
-    this._resizeCanvas(this.prevCanvas);
-    this._resizeCanvas(this.renderCanvas);
+    this._resizeCanvas(this._currentCanvas);
+    this._resizeCanvas(this._nextCanvas);
+    this._resizeCanvas(this._prevCanvas);
+    this._resizeCanvas(this._renderCanvas);
 
-    this.drawSlides();
+    this._drawSlides(true);
   }
 
   _clearContext(context) {
     context.clearRect(0, 0, context.canvas.width, context.canvas.height);
   }
 
-  _drawSlide(context, slide) {
-    if (slide.content.length) {
-      this.drawSlideContent(context, slide, 0);
-    }
+  _transitionInProgress() {
+    return this._transitionProgress > 0 && this._transitionProgress < 1;
   }
 
-  drawSlides(time) {
-    const transitionSpeed = this._slides[this._currentSlideIndex].transitionSpeed ? this._slides[this._currentSlideIndex].transitionSpeed : this.config.transitionSpeed;
-    const transitionEase = this._slides[this._currentSlideIndex].transitionEase ? this._slides[this._currentSlideIndex].transitionEase : this.config.transitionEase;
-    const progressIncrement = (SKIP_ALTERNATE_FRAMES ? 30 : 60) / transitionSpeed; // fps / transition in ms
-
+  _drawSlides(reset) {
+    const currentSlide = this._slides[this._currentSlideIndex];
+    const transition = glslTransitions[currentSlide.transition || this.config.transition];
+    const transitionSpeed = currentSlide.transitionSpeed !== undefined ? currentSlide.transitionSpeed : this.config.transitionSpeed;
+    const transitionEase = currentSlide.transitionEase || this.config.transitionEase;
+    const progressIncrement = this._fps / transitionSpeed; // fps / transition in ms
+    // const progressIncrement = (SKIP_ALTERNATE_FRAMES ? 30 : 60) / transitionSpeed; // fps / transition in ms
     const nextSlideIndex = this._currentSlideIndex === this._slides.length - 1 ? 0 : this._currentSlideIndex + 1;
     const prevSlideIndex = this._currentSlideIndex === 0 ? this._slides.length - 1 : this._currentSlideIndex - 1;
 
-    this._drawSlide(this.currentContext, this._slides[this._currentSlideIndex]);
-    this._drawSlide(this.nextContext, this._slides[nextSlideIndex]);
-    this._drawSlide(this.prevContext, this._slides[prevSlideIndex]);
-
-    if (!this.transition) {
-      this.transition = createTransition(this.renderContext, glslTransitions[this.config.transition].glsl);
+    if (reset) {
+      currentSlide._rendered = false;
     }
 
-    if (this.fromTexture) {
-      this.fromTexture.dispose();
+    if (!currentSlide._hasVideo && currentSlide._rendered && this._currentSlideIndex === this._transitionToIndex) {
+      return;
     }
 
-    if (this.toTexture) {
-      this.toTexture.dispose();
+    this._drawSlide(this._currentContext, currentSlide);
+    this._drawSlide(this._nextContext, this._slides[nextSlideIndex]);
+    this._drawSlide(this._prevContext, this._slides[prevSlideIndex]);
+
+    if (!this.transition || this.transition.name !== transition.name) {
+      this.transition = transition;
+      if (this._transition) {
+        this._transition.dispose();
+      }
+      this._transition = createTransition(this._renderContext, this.transition.glsl);
     }
 
-    if (this._transitionToIndex !== this._currentSlideIndex) {
+    if (this._fromTexture) {
+      this._fromTexture.dispose();
+    }
+
+    if (this._toTexture) {
+      this._toTexture.dispose();
+    }
+
+    // console.log(this._transitionToIndex, this._currentSlideIndex);
+
+    if (this._transitionToIndex !== this._currentSlideIndex || this._transitionInProgress()) {
+
+      // if (this._transitionToIndex > this._currentSlideIndex ||
+      //   (this._transitionToIndex === 0 && this._currentSlideIndex === this._slides.length - 1) ||
+      //   this._transitionToIndex === this._currentSlideIndex) {
 
       if (this._transitionDirection === TRANSITION_FORWARDS) {
-        this.fromTexture = createTexture(this.renderContext, this.currentCanvas);
-        this.toTexture = createTexture(this.renderContext, this.nextCanvas);
-
-        this._transitionProgress = this._transitionProgress === 1 || this._transitionProgress === 0 ? progressIncrement : this._transitionProgress + progressIncrement;
+        this._fromTexture = createTexture(this._renderContext, this._currentCanvas);
+        this._toTexture = createTexture(this._renderContext, this._nextCanvas);
 
       } else {
-        this.fromTexture = createTexture(this.renderContext, this.prevCanvas);
-        this.toTexture = createTexture(this.renderContext, this.currentCanvas);
+        this._fromTexture = createTexture(this._renderContext, this._prevCanvas);
+        this._toTexture = createTexture(this._renderContext, this._currentCanvas);
+      }
 
-        this._transitionProgress = this._transitionProgress === 1 || this._transitionProgress === 0 ? 1 - progressIncrement : this._transitionProgress - progressIncrement;
+      if (this._transitionDirection === TRANSITION_FORWARDS) {
+        this._transitionProgress = this._transitionInProgress() ? this._transitionProgress + progressIncrement : progressIncrement;
+      }
+      if (this._transitionDirection === TRANSITION_BACKWARDS) {
+        this._transitionProgress = this._transitionInProgress() ? this._transitionProgress - progressIncrement : 1 - progressIncrement;
       }
 
       if (this._transitionProgress > 1) {
@@ -152,51 +180,66 @@ class Showy {
       }
 
     } else {
-      this.fromTexture = createTexture(this.renderContext, this.currentCanvas);
-      this.toTexture = this.fromTexture;
+      this._fromTexture = createTexture(this._renderContext, this._currentCanvas);
+      this._toTexture = this._fromTexture;
     }
 
     const easedTransitionProgress = eases[transitionEase](this._transitionProgress);
 
-    this.transition.render(easedTransitionProgress, this.fromTexture, this.toTexture, glslTransitions[this.config.transition].uniforms);
+    this._transition.render(easedTransitionProgress, this._fromTexture, this._toTexture, transition.uniforms);
 
-    if (this._transitionToIndex !== this._currentSlideIndex && (this._transitionProgress === 0 || this._transitionProgress === 1)) {
+    if (currentSlide._ready) {
+      currentSlide._rendered = true;
+    }
+
+    if (this._transitionToIndex !== this._currentSlideIndex && !this._transitionInProgress()) {
       this._currentSlideIndex = this._transitionToIndex;
 
-      this._clearContext(this.currentContext);
-      this._clearContext(this.nextContext);
-      this._clearContext(this.prevContext);
+      this._clearContext(this._currentContext);
+      this._clearContext(this._nextContext);
+      this._clearContext(this._prevContext);
     }
   }
 
-  drawSlideContent(context, slide, index) {
+  _drawSlide(context, slide) {
+    slide._hasVideo = slide.content.filter(object => object.type === 'video').length > 0;
+    slide._rendered = false;
+    slide._ready = false;
+
+    if (slide.content.length) {
+      this._drawSlideContent(context, slide, 0);
+    }
+  }
+
+  _drawSlideContent(context, slide, index) {
     const object = slide.content[index];
 
     if (!object) {
+      slide._ready = true;
       return;
     }
 
-    const callback = this.drawSlideContent.bind(this, context, slide, index + 1);
+    const callback = this._drawSlideContent.bind(this, context, slide, index + 1);
 
     switch (object.type) {
       case 'image':
-        this.drawImage(context, object, callback);
+        this._drawImage(context, object, callback);
         break;
       case 'video':
-        this.drawVideo(context, object, callback);
+        this._drawVideo(context, object, callback);
         break;
       default:
         throw new Error('Unknown content type');
     }
   }
 
-  position2Pixels(position, scale = 1) {
+  _position2Pixels(position, scale = 1) {
     const pixels = [];
 
     position.forEach((val, index) => {
       let pixel;
 
-      let length = [this.currentCanvas.width, this.currentCanvas.height, this.currentCanvas.width, this.currentCanvas.height][index];
+      let length = [this._currentCanvas.width, this._currentCanvas.height, this._currentCanvas.width, this._currentCanvas.height][index];
 
       length /= scale;
 
@@ -225,7 +268,7 @@ class Showy {
     };
   }
 
-  updateCoords(src, dst, scaleMode) {
+  _updateCoords(src, dst, scaleMode) {
     const srcRatio = src.width / src.height;
     const dstRatio = dst.width / dst.height;
 
@@ -267,7 +310,7 @@ class Showy {
     };
   }
 
-  getTile(dst, size) {
+  _getTile(dst, size) {
     return {
       x: dst.x,
       y: dst.y,
@@ -276,7 +319,7 @@ class Showy {
     };
   }
 
-  drawTiles(dst, tile, scaleMode, callback) {
+  _drawTiles(dst, tile, scaleMode, callback) {
     let rows;
     let columns;
 
@@ -314,7 +357,7 @@ class Showy {
     }
   }
 
-  getImageData(image, x, y, width, height) {
+  _getImageData(image, x, y, width, height) {
     const tempCanvas = document.createElement('canvas');
     tempCanvas.width = image.naturalWidth;
     tempCanvas.height = image.naturalHeight;
@@ -323,7 +366,7 @@ class Showy {
     return tempContext.getImageData(x, y, width, height).data;
   }
 
-  getImage(imageUrl, callback) {
+  _getImage(imageUrl, callback) {
     if (this._imageMap[imageUrl]) {
       callback(this._imageMap[imageUrl]);
       return;
@@ -337,7 +380,7 @@ class Showy {
     };
   }
 
-  _drawImage(image, src, dst, callback) {
+  _resizeImage(image, src, dst, callback) {
     const resizedImageKey = JSON.stringify(dst);
 
     if (this._slideContentMap[resizedImageKey]) {
@@ -346,7 +389,7 @@ class Showy {
     }
 
     pica.resizeBuffer({
-      src: this.getImageData(image, src.x, src.y, src.width, src.height),
+      src: this._getImageData(image, src.x, src.y, src.width, src.height),
       width: src.width,
       height: src.height,
       toWidth: dst.width,
@@ -365,8 +408,8 @@ class Showy {
     });
   }
 
-  drawImage(context, object, callback) {
-    this.getImage(object.url, image => {
+  _drawImage(context, object, callback) {
+    this._getImage(object.url, image => {
       let src = {
         x: 0,
         y: 0,
@@ -374,16 +417,16 @@ class Showy {
         height: image.naturalHeight,
       };
 
-      let dst = this.position2Pixels(object.position, this._scale);
+      let dst = this._position2Pixels(object.position, this._scale);
 
       if (object.tile) {
-        let tile = this.getTile(dst, object.tile.size);
+        let tile = this._getTile(dst, object.tile.size);
 
-        const updatedCoords = this.updateCoords(src, tile, object.tile.scaleMode);
+        const updatedCoords = this._updateCoords(src, tile, object.tile.scaleMode);
 
-        this._drawImage(image, updatedCoords.src, updatedCoords.dst, resizedImageData => {
+        this._resizeImage(image, updatedCoords.src, updatedCoords.dst, resizedImageData => {
 
-          this.drawTiles(dst, updatedCoords.dst, object.scaleMode, tileCoord => {
+          this._drawTiles(dst, updatedCoords.dst, object.scaleMode, tileCoord => {
             context.putImageData(resizedImageData, tileCoord.x, tileCoord.y);
           });
 
@@ -393,12 +436,12 @@ class Showy {
         return;
       }
 
-      const updatedCoords = this.updateCoords(src, dst, object.scaleMode);
+      const updatedCoords = this._updateCoords(src, dst, object.scaleMode);
 
       src = updatedCoords.src;
       dst = updatedCoords.dst;
 
-      this._drawImage(image, src, dst, resizedImageData => {
+      this._resizeImage(image, src, dst, resizedImageData => {
         context.putImageData(resizedImageData, dst.x, dst.y);
 
         callback();
@@ -406,16 +449,16 @@ class Showy {
     });
   }
 
-  getVideoData(video) {
+  _getVideoData(video) {
     const tempCanvas = document.createElement('canvas');
     tempCanvas.width = video.videoWidth;
     tempCanvas.height = video.videoHeight;
     const tempContext = tempCanvas.getContext('2d');
     tempContext.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
-    return tempContext.getImageData(0, 0, video.videoWidth, video.videoHeight).data;
+    return tempContext._getImageData(0, 0, video.videoWidth, video.videoHeight).data;
   }
 
-  getVideo(sources, callback) {
+  _getVideo(sources, callback) {
     const videoKey = JSON.stringify(sources);
 
     if (this._videoMap[videoKey]) {
@@ -445,8 +488,8 @@ class Showy {
     });
   }
 
-  drawVideo(context, object, callback) {
-    this.getVideo(object.sources, video => {
+  _drawVideo(context, object, callback) {
+    this._getVideo(object.sources, video => {
       if (video.videoWidth === 0 || video.videoHeight === 0) {
         return;
       }
@@ -458,14 +501,14 @@ class Showy {
         height: video.videoHeight,
       };
 
-      let dst = this.position2Pixels(object.position, this._scale);
+      let dst = this._position2Pixels(object.position, this._scale);
 
       if (object.tile) {
-        let tile = this.getTile(dst, object.tile.size);
+        let tile = this._getTile(dst, object.tile.size);
 
-        const updatedCoords = this.updateCoords(src, tile, object.tile.scaleMode);
+        const updatedCoords = this._updateCoords(src, tile, object.tile.scaleMode);
 
-        this.drawTiles(dst, updatedCoords.dst, object.scaleMode, tileCoord => {
+        this._drawTiles(dst, updatedCoords.dst, object.scaleMode, tileCoord => {
           context.drawImage(video, src.x, src.y, src.width, src.height, tileCoord.x, tileCoord.y, tile.width, tile.height);
         });
 
@@ -474,7 +517,7 @@ class Showy {
         return;
       }
 
-      const updatedCoords = this.updateCoords(src, dst, object.scaleMode);
+      const updatedCoords = this._updateCoords(src, dst, object.scaleMode);
 
       src = updatedCoords.src;
       dst = updatedCoords.dst;
