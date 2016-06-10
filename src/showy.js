@@ -1,3 +1,11 @@
+/**
+ * TODO
+ * - cache video frames (assume frame rate and round currentTime to get frame)
+ * - fallback for no-webgl (use gsap?)
+ * - fallback for no-video / autoplay on mobile
+ * - priority based transitions
+ */
+
 const TRANSITION_FORWARDS = 'forwards';
 const TRANSITION_BACKWARDS = 'backwards';
 const SKIP_ALTERNATE_FRAMES = false;
@@ -36,14 +44,24 @@ class Showy {
 
   nextSlide() {
     this._transitionDirection = TRANSITION_FORWARDS;
-    this._transitionToIndex = this._currentSlideIndex === this._slides.length - 1 ? 0 : this._currentSlideIndex + 1;
-    // this._transitionToIndex = this._transitionToIndex === this._slides.length - 1 ? 0 : this._transitionToIndex + 1;
+
+    if (this._transitionToIndex === this._currentSlideIndex - 1 || (this._transitionToIndex === this._slides.length - 1 && this._currentSlideIndex === 0)) {
+      this._transitionToIndex = this._currentSlideIndex;
+
+    } else {
+      this._transitionToIndex = this._currentSlideIndex === this._slides.length - 1 ? 0 : this._currentSlideIndex + 1;
+    }
   }
 
   prevSlide() {
     this._transitionDirection = TRANSITION_BACKWARDS;
-    this._transitionToIndex = this._currentSlideIndex === 0 ? this._slides.length - 1 : this._currentSlideIndex - 1;
-    // this._transitionToIndex = this._transitionToIndex === 0 ? this._slides.length - 1 : this._transitionToIndex - 1;
+
+    if (this._transitionToIndex === this._currentSlideIndex + 1 || (this._transitionToIndex === 0 && this._currentSlideIndex === this._slides.length - 1)) {
+      this._transitionToIndex = this._currentSlideIndex;
+
+    } else {
+      this._transitionToIndex = this._currentSlideIndex === 0 ? this._slides.length - 1 : this._currentSlideIndex - 1;
+    }
   }
 
   _animate(skipFrame, frameTime) {
@@ -124,7 +142,7 @@ class Showy {
       currentSlide._rendered = false;
     }
 
-    if (!currentSlide._hasVideo && currentSlide._rendered && this._currentSlideIndex === this._transitionToIndex) {
+    if (!currentSlide._hasVideo && currentSlide._rendered && !this._transitionInProgress() && this._currentSlideIndex === this._transitionToIndex) {
       return;
     }
 
@@ -148,19 +166,15 @@ class Showy {
       this._toTexture.dispose();
     }
 
-    // console.log(this._transitionToIndex, this._currentSlideIndex);
-
     if (this._transitionToIndex !== this._currentSlideIndex || this._transitionInProgress()) {
 
-      // if (this._transitionToIndex > this._currentSlideIndex ||
-      //   (this._transitionToIndex === 0 && this._currentSlideIndex === this._slides.length - 1) ||
-      //   this._transitionToIndex === this._currentSlideIndex) {
-
-      if (this._transitionDirection === TRANSITION_FORWARDS) {
+      if ((this._transitionToIndex !== this._currentSlideIndex && this._transitionDirection === TRANSITION_FORWARDS) ||
+        (this._transitionToIndex === this._currentSlideIndex && this._transitionDirection === TRANSITION_BACKWARDS)) {
         this._fromTexture = createTexture(this._renderContext, this._currentCanvas);
         this._toTexture = createTexture(this._renderContext, this._nextCanvas);
-
-      } else {
+      }
+      if ((this._transitionToIndex !== this._currentSlideIndex && this._transitionDirection === TRANSITION_BACKWARDS) ||
+       (this._transitionToIndex === this._currentSlideIndex && this._transitionDirection === TRANSITION_FORWARDS)) {
         this._fromTexture = createTexture(this._renderContext, this._prevCanvas);
         this._toTexture = createTexture(this._renderContext, this._currentCanvas);
       }
