@@ -6,7 +6,7 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, 'dist'),
     publicPath: '/dist/',
-    filename: 'showy.js',
+    filename: 'showy.pkgd.min.js',
   },
   module: {
     loaders: [

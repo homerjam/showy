@@ -3,7 +3,7 @@ require('expose?createTexture!gl-texture2d');
 require('expose?createTransition!glsl-transition');
 require('expose?eases!eases');
 
-var glslTransitions = require('json!glsl-transitions/transitions.json');
+var glslTransitions = require('glsl-transitions/build/glsl-transitions');
 
 // http://stackoverflow.com/questions/2970525/converting-any-string-into-camel-case
 function camelize (str) {
