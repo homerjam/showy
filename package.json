@@ -1,6 +1,6 @@
 {
   "name": "showy",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Ostentatious, canvas-based presentations",
   "main": "dist/showy.min.js",
   "webpack": "showy.webpack.js",
