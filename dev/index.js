@@ -3,12 +3,19 @@ var config = {
   autoplay: true,
   loop: true,
   duration: 2000,
-  transition: 'dreamy',
-  transitionSpeed: 3000,
+  transition: {
+    name: 'dreamy',
+    duration: 2000,
+    ease: 'linear',
+  },
   slides: [
     {
       duration: 2000, // optional
-      transitionSpeed: 1000,
+      transitionNext: {
+        name: 'warpfade', // name/id/key/slug
+        duration: 2000,
+        priority: 1,
+      },
       content: [
         {
           type: 'image',
@@ -76,12 +83,10 @@ var config = {
     },
     {
       duration: 2000, // optional
-      transition: 'cube', // optional
-      transitionSpeed: 3000,
-      transitionEase: 'bounceOut',
       content: [
         {
           type: 'video',
+          poster: 'dev/assets/carpark.jpg',
           sources: [
             {
               url: 'dev/assets/surfer.mp4',
@@ -116,7 +121,12 @@ var config = {
     },
     {
       duration: 2000, // optional
-      transition: 'doorway', // optional
+      transitionPrev: {
+        name: 'cube', // name/id/key/slug
+        ease: 'bounceOut',
+        duration: 2000,
+        priority: 1,
+      },
       content: [
         {
           type: 'video',
@@ -129,11 +139,11 @@ var config = {
           position: [0, 0, 1, 1], // [x, y, x2, y2] either percentage based or...
           // position: [100, 100, 100, 100], // [x, y, w - x2, h - y2] ...pixels from edges
           scaleMode: 'fill', // fit|fill
-          // tile: {
-          //   // size: [0.2, 0.2], // [w, h] either percentage based or...
-          //   size: [200, 200], // [w, h] ...in pixels
-          //   scaleMode: 'fill', // fit|fill
-          // },
+        // tile: {
+        //   // size: [0.2, 0.2], // [w, h] either percentage based or...
+        //   size: [200, 200], // [w, h] ...in pixels
+        //   scaleMode: 'fill', // fit|fill
+        // },
         },
         {
           type: 'image',

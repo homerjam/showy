@@ -1,22 +1,25 @@
 /**
  * TODO
  * - cache video frames (assume frame rate and round currentTime to get frame)
- * - fallback for no-webgl (use gsap?)
  * - fallback for no-video / autoplay on mobile
- * - priority based transitions
+ * - effects/filters (sepia / grayscale etc)
+ * - fallback for no-webgl (use gsap?)
  */
 
 const TRANSITION_FORWARDS = 'forwards';
 const TRANSITION_BACKWARDS = 'backwards';
-const SKIP_ALTERNATE_FRAMES = false;
 
 class Showy {
   constructor(config) {
     const defaultConfig = {
       container: 'body',
       slides: [],
-      transitionSpeed: 2000,
-      transitionEase: 'linear',
+      transition: {
+        name: 'slide',
+        duration: 2000,
+        ease: 'linear',
+        priority: 0,
+      },
     };
 
     this.config = Object.assign({}, defaultConfig, config);
@@ -36,16 +39,19 @@ class Showy {
 
     this._createCanvases();
 
+    this.transition = this._getTransition();
+
     window.addEventListener('resize', this.resize.bind(this));
 
     this._lastFrameTime = 0;
-    window.requestAnimationFrame(this._animate.bind(this, false));
+    window.requestAnimationFrame(this._animate.bind(this));
   }
 
   nextSlide() {
     this._transitionDirection = TRANSITION_FORWARDS;
 
     if (this._transitionToIndex === this._currentSlideIndex - 1 || (this._transitionToIndex === this._slides.length - 1 && this._currentSlideIndex === 0)) {
+      // Cancel and reverse the transition
       this._transitionToIndex = this._currentSlideIndex;
 
     } else {
@@ -57,6 +63,7 @@ class Showy {
     this._transitionDirection = TRANSITION_BACKWARDS;
 
     if (this._transitionToIndex === this._currentSlideIndex + 1 || (this._transitionToIndex === 0 && this._currentSlideIndex === this._slides.length - 1)) {
+      // Cancel and reverse the transition
       this._transitionToIndex = this._currentSlideIndex;
 
     } else {
@@ -64,16 +71,14 @@ class Showy {
     }
   }
 
-  _animate(skipFrame, frameTime) {
+  _animate(frameTime) {
+    window.requestAnimationFrame(this._animate.bind(this));
+
     this._fps = 1000 / (frameTime - this._lastFrameTime);
 
-    window.requestAnimationFrame(this._animate.bind(this, !skipFrame));
+    this._drawSlides();
 
-    if (!(skipFrame && SKIP_ALTERNATE_FRAMES)) {
-      this._lastFrameTime = frameTime;
-
-      this._drawSlides();
-    }
+    this._lastFrameTime = frameTime;
   }
 
   _createCanvas() {
@@ -128,35 +133,38 @@ class Showy {
     return this._transitionProgress > 0 && this._transitionProgress < 1;
   }
 
+  _getTransition(currentSlideTransition = {}, nextPrevSlideTransition = {}) {
+    const _currentSlideTransition = Object.assign({}, this.config.transition, currentSlideTransition || {});
+    const _nextPrevSlideTransition = Object.assign({}, this.config.transition, nextPrevSlideTransition || {});
+    _currentSlideTransition.glsl = glslTransitions[_currentSlideTransition.name];
+    _nextPrevSlideTransition.glsl = glslTransitions[_nextPrevSlideTransition.name];
+    return _currentSlideTransition.priority >= _nextPrevSlideTransition.priority ? _currentSlideTransition : _nextPrevSlideTransition;
+  }
+
   _drawSlides(reset) {
     const currentSlide = this._slides[this._currentSlideIndex];
-    const transition = glslTransitions[currentSlide.transition || this.config.transition];
-    const transitionSpeed = currentSlide.transitionSpeed !== undefined ? currentSlide.transitionSpeed : this.config.transitionSpeed;
-    const transitionEase = currentSlide.transitionEase || this.config.transitionEase;
-    const progressIncrement = this._fps / transitionSpeed; // fps / transition in ms
-    // const progressIncrement = (SKIP_ALTERNATE_FRAMES ? 30 : 60) / transitionSpeed; // fps / transition in ms
-    const nextSlideIndex = this._currentSlideIndex === this._slides.length - 1 ? 0 : this._currentSlideIndex + 1;
-    const prevSlideIndex = this._currentSlideIndex === 0 ? this._slides.length - 1 : this._currentSlideIndex - 1;
+    const nextSlide = this._slides[this._currentSlideIndex === this._slides.length - 1 ? 0 : this._currentSlideIndex + 1];
+    const prevSlide = this._slides[this._currentSlideIndex === 0 ? this._slides.length - 1 : this._currentSlideIndex - 1];
 
+    let transition;
+
+    // Rerender the current slide eg. if canvas has been resized
     if (reset) {
       currentSlide._rendered = false;
     }
 
-    if (!currentSlide._hasVideo && currentSlide._rendered && !this._transitionInProgress() && this._currentSlideIndex === this._transitionToIndex) {
+    // Only render if we need to ie. only during transitions
+    // or if the current slide contains video(s)
+    if (!currentSlide._hasVideo &&
+      currentSlide._rendered &&
+      !this._transitionInProgress() &&
+      this._currentSlideIndex === this._transitionToIndex) {
       return;
     }
 
     this._drawSlide(this._currentContext, currentSlide);
-    this._drawSlide(this._nextContext, this._slides[nextSlideIndex]);
-    this._drawSlide(this._prevContext, this._slides[prevSlideIndex]);
-
-    if (!this.transition || this.transition.name !== transition.name) {
-      this.transition = transition;
-      if (this._transition) {
-        this._transition.dispose();
-      }
-      this._transition = createTransition(this._renderContext, this.transition.glsl);
-    }
+    this._drawSlide(this._nextContext, nextSlide);
+    this._drawSlide(this._prevContext, prevSlide);
 
     if (this._fromTexture) {
       this._fromTexture.dispose();
@@ -166,19 +174,27 @@ class Showy {
       this._toTexture.dispose();
     }
 
+    // Transition is already running or has been triggered by a change of _transitionToIndex
     if (this._transitionToIndex !== this._currentSlideIndex || this._transitionInProgress()) {
-
+      // We're heading to the next slide (or the transition has been cancelled halfway through)
       if ((this._transitionToIndex !== this._currentSlideIndex && this._transitionDirection === TRANSITION_FORWARDS) ||
         (this._transitionToIndex === this._currentSlideIndex && this._transitionDirection === TRANSITION_BACKWARDS)) {
         this._fromTexture = createTexture(this._renderContext, this._currentCanvas);
         this._toTexture = createTexture(this._renderContext, this._nextCanvas);
+        transition = this._getTransition(currentSlide.transitionNext, nextSlide.transitionPrev);
       }
+      // We're heading to the previous slide (or the transition has been cancelled halfway through)
       if ((this._transitionToIndex !== this._currentSlideIndex && this._transitionDirection === TRANSITION_BACKWARDS) ||
-       (this._transitionToIndex === this._currentSlideIndex && this._transitionDirection === TRANSITION_FORWARDS)) {
+        (this._transitionToIndex === this._currentSlideIndex && this._transitionDirection === TRANSITION_FORWARDS)) {
         this._fromTexture = createTexture(this._renderContext, this._prevCanvas);
         this._toTexture = createTexture(this._renderContext, this._currentCanvas);
+        transition = this._getTransition(currentSlide.transitionPrev, prevSlide.transitionNext);
       }
 
+      // console.log(this._fps);
+      const progressIncrement = 60 / transition.duration;
+
+      // Increment the transition progress depending on the direction
       if (this._transitionDirection === TRANSITION_FORWARDS) {
         this._transitionProgress = this._transitionInProgress() ? this._transitionProgress + progressIncrement : progressIncrement;
       }
@@ -186,6 +202,7 @@ class Showy {
         this._transitionProgress = this._transitionInProgress() ? this._transitionProgress - progressIncrement : 1 - progressIncrement;
       }
 
+      // We've reached the end of the transition
       if (this._transitionProgress > 1) {
         this._transitionProgress = 1;
       }
@@ -194,18 +211,33 @@ class Showy {
       }
 
     } else {
+      // We're not transitioning so just rerender current slide (only if needed)
       this._fromTexture = createTexture(this._renderContext, this._currentCanvas);
       this._toTexture = this._fromTexture;
     }
 
-    const easedTransitionProgress = eases[transitionEase](this._transitionProgress);
+    if (transition && this.transition.name !== transition.name) {
+      this.transition = transition;
+      if (this._transition) {
+        this._transition.dispose();
+        this._transition = null;
+      }
+    }
 
-    this._transition.render(easedTransitionProgress, this._fromTexture, this._toTexture, transition.uniforms);
+    if (!this._transition) {
+      this._transition = createTransition(this._renderContext, this.transition.glsl.glsl);
+    }
 
+    const easedTransitionProgress = eases[this.transition.ease](this._transitionProgress);
+
+    this._transition.render(easedTransitionProgress, this._fromTexture, this._toTexture, this.transition.glsl.uniforms);
+
+    // We have rendered the current slide for the first time
     if (currentSlide._ready) {
       currentSlide._rendered = true;
     }
 
+    // Transition is finished
     if (this._transitionToIndex !== this._currentSlideIndex && !this._transitionInProgress()) {
       this._currentSlideIndex = this._transitionToIndex;
 
