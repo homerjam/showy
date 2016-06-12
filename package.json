@@ -22,6 +22,7 @@
     "gl-texture2d": "^2.0.10",
     "glsl-transition": "^1.0.2",
     "glsl-transitions": "^2016.6.3",
+    "lodash": "^4.13.1",
     "pica": "^2.0.3"
   },
   "devDependencies": {

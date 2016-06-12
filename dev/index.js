@@ -1,8 +1,24 @@
+// http://stackoverflow.com/questions/2970525/converting-any-string-into-camel-case
+function camelize (str) {
+  return str.replace(/_/g, ' ').replace(/(?:^\w|[A-Z]|\b\w)/g, function (letter, index) {
+    return index === 0 ? letter.toLowerCase() : letter.toUpperCase();
+  }).replace(/\s+/g, '');
+}
+
+var glslTransitions = {};
+
+GlslTransitions.forEach(function (transition) {
+  glslTransitions[camelize(transition.name)] = transition;
+});
+
+console.log(glslTransitions);
+
 var config = {
   container: document.querySelector('.container'),
   autoplay: true,
   loop: true,
   duration: 2000,
+  glslTransitions: glslTransitions,
   transition: {
     name: 'dreamy',
     duration: 2000,
@@ -166,8 +182,6 @@ var config = {
 };
 
 console.log(config);
-
-console.log(glslTransitions);
 
 var showy = new (Showy.default || Showy)(config);
 

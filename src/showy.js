@@ -14,6 +14,7 @@ class Showy {
     const defaultConfig = {
       container: 'body',
       slides: [],
+      glslTransitions: {},
       transition: {
         name: 'slide',
         duration: 2000,
@@ -22,7 +23,7 @@ class Showy {
       },
     };
 
-    this.config = Object.assign({}, defaultConfig, config);
+    this.config = _.extend({}, defaultConfig, config);
 
     if (typeof this.config.container === 'string') {
       this.container = document.querySelector(this.config.container);
@@ -134,10 +135,10 @@ class Showy {
   }
 
   _getTransition(currentSlideTransition = {}, nextPrevSlideTransition = {}) {
-    const _currentSlideTransition = Object.assign({}, this.config.transition, currentSlideTransition || {});
-    const _nextPrevSlideTransition = Object.assign({}, this.config.transition, nextPrevSlideTransition || {});
-    _currentSlideTransition.glsl = glslTransitions[_currentSlideTransition.name];
-    _nextPrevSlideTransition.glsl = glslTransitions[_nextPrevSlideTransition.name];
+    const _currentSlideTransition = _.extend({}, this.config.transition, currentSlideTransition || {});
+    const _nextPrevSlideTransition = _.extend({}, this.config.transition, nextPrevSlideTransition || {});
+    _currentSlideTransition.glsl = this.config.glslTransitions[_currentSlideTransition.name];
+    _nextPrevSlideTransition.glsl = this.config.glslTransitions[_nextPrevSlideTransition.name];
     return _currentSlideTransition.priority >= _nextPrevSlideTransition.priority ? _currentSlideTransition : _nextPrevSlideTransition;
   }
 

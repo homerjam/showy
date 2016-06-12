@@ -18,6 +18,8 @@ glslTransitions.forEach(function (transition) {
   window.glslTransitions[camelize(transition.name)] = transition;
 });
 
-var Showy = require('expose?Showy!babel?presets[]=es2015!./src/showy');
+var Showy = require('babel?presets[]=es2015!./src/showy');
+
+window.Showy = Showy;
 
 module.exports = Showy;
