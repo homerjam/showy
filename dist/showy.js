@@ -43,7 +43,7 @@ var Showy = function () {
       }
     };
 
-    this.config = _.extend({}, defaultConfig, config);
+    this.config = _.merge({}, defaultConfig, config);
 
     if (typeof this.config.container === 'string') {
       this.container = document.querySelector(this.config.container);
@@ -95,11 +95,15 @@ var Showy = function () {
   }, {
     key: '_animate',
     value: function _animate(frameTime) {
-      window.requestAnimationFrame(this._animate.bind(this));
-
       this._fps = 1000 / (frameTime - this._lastFrameTime);
 
-      this._drawSlides();
+      try {
+        this._drawSlides();
+
+        window.requestAnimationFrame(this._animate.bind(this));
+      } catch (error) {
+        console.error(error.stack);
+      }
 
       this._lastFrameTime = frameTime;
     }
@@ -167,8 +171,8 @@ var Showy = function () {
       var currentSlideTransition = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
       var nextPrevSlideTransition = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
-      var _currentSlideTransition = _.extend({}, this.config.transition, currentSlideTransition || {});
-      var _nextPrevSlideTransition = _.extend({}, this.config.transition, nextPrevSlideTransition || {});
+      var _currentSlideTransition = _.merge({}, this.config.transition, currentSlideTransition || {});
+      var _nextPrevSlideTransition = _.merge({}, this.config.transition, nextPrevSlideTransition || {});
       _currentSlideTransition.glsl = this.config.glslTransitions[_currentSlideTransition.name];
       _nextPrevSlideTransition.glsl = this.config.glslTransitions[_nextPrevSlideTransition.name];
       return _currentSlideTransition.priority >= _nextPrevSlideTransition.priority ? _currentSlideTransition : _nextPrevSlideTransition;
@@ -462,6 +466,7 @@ var Showy = function () {
       }
 
       var image = new Image();
+      image.crossOrigin = 'Anonymous';
       image.src = imageUrl;
       image.onload = function (event) {
         _this2._imageMap[imageUrl] = image;

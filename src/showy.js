@@ -23,7 +23,7 @@ class Showy {
       },
     };
 
-    this.config = _.extend({}, defaultConfig, config);
+    this.config = _.merge({}, defaultConfig, config);
 
     if (typeof this.config.container === 'string') {
       this.container = document.querySelector(this.config.container);
@@ -73,11 +73,16 @@ class Showy {
   }
 
   _animate(frameTime) {
-    window.requestAnimationFrame(this._animate.bind(this));
-
     this._fps = 1000 / (frameTime - this._lastFrameTime);
 
-    this._drawSlides();
+    try {
+      this._drawSlides();
+
+      window.requestAnimationFrame(this._animate.bind(this));
+
+    } catch (error) {
+      console.error(error.stack);
+    }
 
     this._lastFrameTime = frameTime;
   }
@@ -134,9 +139,9 @@ class Showy {
     return this._transitionProgress > 0 && this._transitionProgress < 1;
   }
 
-  _getTransition(currentSlideTransition = {}, nextPrevSlideTransition = {}) {
-    const _currentSlideTransition = _.extend({}, this.config.transition, currentSlideTransition || {});
-    const _nextPrevSlideTransition = _.extend({}, this.config.transition, nextPrevSlideTransition || {});
+  _getTransition(currentSlideTransition = {} , nextPrevSlideTransition = {}) {
+    const _currentSlideTransition = _.merge({}, this.config.transition, currentSlideTransition || {});
+    const _nextPrevSlideTransition = _.merge({}, this.config.transition, nextPrevSlideTransition || {});
     _currentSlideTransition.glsl = this.config.glslTransitions[_currentSlideTransition.name];
     _nextPrevSlideTransition.glsl = this.config.glslTransitions[_nextPrevSlideTransition.name];
     return _currentSlideTransition.priority >= _nextPrevSlideTransition.priority ? _currentSlideTransition : _nextPrevSlideTransition;
