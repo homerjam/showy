@@ -1,6 +1,10 @@
 /**
  * TODO
+ * - autoplay
  * - cache video frames (assume frame rate and round currentTime to get frame)
+ * - background color
+ * - events (ready, slide-loaded, progress etc)
+ * - video options (loop)
  * - fallback for no-video / autoplay on mobile
  * - effects/filters (sepia / grayscale etc)
  * - fallback for no-webgl (use gsap?)
