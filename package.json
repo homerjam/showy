@@ -10,10 +10,12 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "watchify showy.browserify.js -v -d -o dist/showy.js -t babelify --presets es2015",
-    "build": "browserify showy.browserify.js -v -t babelify --presets es2015 | uglifyjs -cm > dist/showy.min.js",
-    "webpack": "webpack -p showy.webpack.js dist/showy.pkgd.min.js",
-    "serve": "webpack-dev-server --inline --open"
+    "watch": "watchify showy.browserify.js -vd -t babelify --presets es2015 -o o dist/showy.js",
+    "build:compile": "browserify showy.browserify.js -vd -t babelify --presets es2015 | exorcist dist/showy.js.map > dist/showy.js",
+    "build:minify": "npm run build:compile; uglifyjs dist/showy.js -cm -o dist/showy.min.js --source-map dist/showy.min.js.map --in-source-map dist/showy.js.map",
+    "build": "npm run build:compile; npm run build:minify",
+    "package": "webpack -p --output-filename showy.pkgd.min.js",
+    "dev": "webpack-dev-server --inline --open"
   },
   "author": "Homerjam <jameshomer85@gmail.com>",
   "license": "MIT",
@@ -31,7 +33,11 @@
     "babel-polyfill": "^6.9.1",
     "babel-preset-es2015": "^6.9.0",
     "babelify": "^7.3.0",
+    "browserify": "^13.0.1",
+    "exorcist": "^0.4.0",
     "expose-loader": "^0.7.1",
+    "uglifyjs": "^2.4.10",
+    "watchify": "^3.7.0",
     "webpack": "^1.13.1",
     "webpack-dev-server": "^1.14.1"
   }

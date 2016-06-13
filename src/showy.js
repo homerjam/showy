@@ -420,6 +420,7 @@ class Showy {
     }
 
     const image = new Image();
+    image.crossOrigin = 'Anonymous';
     image.src = imageUrl;
     image.onload = event => {
       this._imageMap[imageUrl] = image;

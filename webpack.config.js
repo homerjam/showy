@@ -4,12 +4,12 @@ var webpack = require('webpack');
 module.exports = {
   devtool: 'source-map',
   // entry: ['babel-polyfill', './showy.webpack.js'],
-  entry: ['babel-polyfill', './src/showy.js'],
+  entry: './src/showy.js',
   output: {
     library: 'Showy',
     path: path.resolve(__dirname, 'dist'),
     publicPath: '/dist/',
-    filename: 'showy.pkgd.min.js',
+    filename: 'showy.pkgd.js',
   },
   plugins: [
     new webpack.ProvidePlugin({
