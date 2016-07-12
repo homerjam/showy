@@ -1,6 +1,6 @@
 {
   "name": "showy",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Ostentatious, canvas-based presentations",
   "main": "dist/showy.min.js",
   "webpack": "showy.webpack.js",
@@ -10,7 +10,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "watch": "watchify showy.browserify.js -vd -t babelify --presets es2015 -o o dist/showy.js",
+    "watch": "watchify showy.browserify.js -vd -t babelify --presets es2015 -o dist/showy.js",
     "build:compile": "browserify showy.browserify.js -vd -t babelify --presets es2015 | exorcist dist/showy.js.map > dist/showy.js",
     "build:minify": "npm run build:compile; uglifyjs dist/showy.js -cm -o dist/showy.min.js --source-map dist/showy.min.js.map --in-source-map dist/showy.js.map",
     "build": "npm run build:compile; npm run build:minify",

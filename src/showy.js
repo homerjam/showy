@@ -41,12 +41,14 @@ class Showy {
     this._imageMap = {};
     this._videoMap = {};
     this._slideContentMap = {};
+    this._destroyed = false;
 
     this._createCanvases();
 
     this.transition = this._getTransition();
 
-    window.addEventListener('resize', this.resize.bind(this));
+    this._resizeHandler = this.resize.bind(this);
+    window.addEventListener('resize', this._resizeHandler);
 
     this._lastFrameTime = 0;
     window.requestAnimationFrame(this._animate.bind(this));
@@ -76,7 +78,24 @@ class Showy {
     }
   }
 
+  destroy() {
+    this._destroyed = true;
+
+    window.removeEventListener('resize', this._resizeHandler);
+
+    for (let i in this._videoMap) {
+      let video = this._videoMap[i];
+      this.container.removeChild(video);
+      video = null;
+    }
+    this._videoMap = null;
+  }
+
   _animate(frameTime) {
+    if (this._destroyed) {
+      return;
+    }
+
     this._fps = 1000 / (frameTime - this._lastFrameTime);
 
     try {
@@ -438,7 +457,10 @@ class Showy {
   }
 
   _resizeImage(image, src, dst, callback) {
-    const resizedImageKey = JSON.stringify(dst);
+    const resizedImageKey = JSON.stringify({
+      src: image.src,
+      dst,
+    });
 
     if (this._slideContentMap[resizedImageKey]) {
       callback(this._slideContentMap[resizedImageKey]);
