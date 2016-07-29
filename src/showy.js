@@ -165,8 +165,8 @@ class Showy {
   _getTransition(currentSlideTransition = {} , nextPrevSlideTransition = {}) {
     const _currentSlideTransition = _.merge({}, this.config.transition, currentSlideTransition || {});
     const _nextPrevSlideTransition = _.merge({}, this.config.transition, nextPrevSlideTransition || {});
-    _currentSlideTransition.glsl = this.config.glslTransitions[_currentSlideTransition.name];
-    _nextPrevSlideTransition.glsl = this.config.glslTransitions[_nextPrevSlideTransition.name];
+    _currentSlideTransition.shader = this.config.glslTransitions[_currentSlideTransition.name];
+    _nextPrevSlideTransition.shader = this.config.glslTransitions[_nextPrevSlideTransition.name];
     return _currentSlideTransition.priority >= _nextPrevSlideTransition.priority ? _currentSlideTransition : _nextPrevSlideTransition;
   }
 
@@ -254,12 +254,12 @@ class Showy {
     }
 
     if (!this._transition) {
-      this._transition = createTransition(this._renderContext, this.transition.glsl.glsl);
+      this._transition = createTransition(this._renderContext, this.transition.shader.glsl);
     }
 
     const easedTransitionProgress = eases[this.transition.ease](this._transitionProgress);
 
-    this._transition.render(easedTransitionProgress, this._fromTexture, this._toTexture, this.transition.glsl.uniforms);
+    this._transition.render(easedTransitionProgress, this._fromTexture, this._toTexture, this.transition.shader.uniforms);
 
     // We have rendered the current slide for the first time
     if (currentSlide._ready) {
