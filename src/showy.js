@@ -13,6 +13,13 @@
 const TRANSITION_FORWARDS = 'forwards';
 const TRANSITION_BACKWARDS = 'backwards';
 
+// Polyfill playing status
+Object.defineProperty(HTMLMediaElement.prototype, 'playing', {
+  get: function () {
+    return !!(this.currentTime > 0 && !this.paused && !this.ended && this.readyState > 2);
+  },
+});
+
 class Showy {
   constructor(config) {
     const defaultConfig = {
@@ -64,6 +71,8 @@ class Showy {
     } else {
       this._transitionToIndex = this._currentSlideIndex === this._slides.length - 1 ? 0 : this._currentSlideIndex + 1;
     }
+
+    this._playSlideContent(this._transitionToIndex);
   }
 
   prevSlide() {
@@ -76,6 +85,8 @@ class Showy {
     } else {
       this._transitionToIndex = this._currentSlideIndex === 0 ? this._slides.length - 1 : this._currentSlideIndex - 1;
     }
+
+    this._playSlideContent(this._transitionToIndex);
   }
 
   destroy() {
@@ -273,6 +284,10 @@ class Showy {
       this._clearContext(this._currentContext);
       this._clearContext(this._nextContext);
       this._clearContext(this._prevContext);
+
+      this._pauseSlideContent();
+
+      console.log('Transition Ended', this._currentSlideIndex);
     }
   }
 
@@ -280,6 +295,9 @@ class Showy {
     slide._hasVideo = slide.content.filter(object => object.type === 'video').length > 0;
     slide._rendered = false;
     slide._ready = false;
+    if (!slide._loaded) {
+      slide._loaded = false;
+    }
 
     if (slide.content.length) {
       this._drawSlideContent(context, slide, 0);
@@ -291,6 +309,12 @@ class Showy {
 
     if (!object) {
       slide._ready = true;
+
+      if (!slide._loaded) {
+        slide._loaded = true;
+
+        console.log('Slide Loaded: ', this._slides.indexOf(slide));
+      }
       return;
     }
 
@@ -537,8 +561,8 @@ class Showy {
     return tempContext._getImageData(0, 0, video.videoWidth, video.videoHeight).data;
   }
 
-  _getVideo(sources, callback) {
-    const videoKey = JSON.stringify(sources);
+  _getVideo(object, callback) {
+    const videoKey = JSON.stringify(object.sources);
 
     if (this._videoMap[videoKey]) {
       callback(this._videoMap[videoKey]);
@@ -548,12 +572,10 @@ class Showy {
     const video = document.createElement('video');
     video.style.display = 'none';
     video.crossOrigin = 'anonymous';
-    video.autoplay = true;
-    video.loop = true;
     video.muted = true;
     this.container.appendChild(video);
 
-    sources.forEach(source => {
+    object.sources.forEach(source => {
       const _source = document.createElement('source');
       _source.src = source.url;
       _source.type = source.type;
@@ -562,13 +584,23 @@ class Showy {
 
     this._videoMap[videoKey] = video;
 
-    video.addEventListener('play', () => {
+    video.addEventListener('loadedmetadata', () => {
       callback(video);
+    });
+
+    video._playCount = 0;
+
+    video.addEventListener('ended', () => {
+      video.play();
+
+      video._playCount += 1;
+
+      console.log('Video Ended', video._playCount, object);
     });
   }
 
   _drawVideo(context, object, callback) {
-    this._getVideo(object.sources, video => {
+    this._getVideo(object, video => {
       if (video.videoWidth === 0 || video.videoHeight === 0) {
         return;
       }
@@ -604,6 +636,36 @@ class Showy {
       context.drawImage(video, src.x, src.y, src.width, src.height, dst.x, dst.y, dst.width, dst.height);
 
       callback();
+    });
+  }
+
+  _playSlideContent(index) {
+    this._slides[index].content.forEach(object => {
+      if (object.type === 'video') {
+        this._getVideo(object, video => {
+          video._playCount = 0;
+          video.currentTime = 0;
+          video.play();
+        });
+      }
+    });
+  }
+
+  _pauseSlideContent() {
+    this._slides.forEach((slide, index) => {
+      if (index === this._currentSlideIndex) {
+        return;
+      }
+
+      slide.content.forEach(object => {
+        if (object.type === 'video') {
+          this._getVideo(object, video => {
+            video._playCount = 0;
+            video.currentTime = 0;
+            video.pause();
+          });
+        }
+      });
     });
   }
 }
