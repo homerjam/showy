@@ -89,9 +89,9 @@ var Showy =
 	    var defaultConfig = {
 	      container: 'body',
 	      slides: [],
-	      transitions: _transitions2.default,
 	      autoplay: false,
 	      slideDuration: 3000,
+	      transitions: _transitions2.default,
 	      transition: {
 	        name: 'random',
 	        duration: 2000,
@@ -107,6 +107,13 @@ var Showy =
 	    } else {
 	      this.container = this.config.container;
 	    }
+	
+	    this.container.style.display = 'block';
+	    this.container.style.position = 'absolute';
+	    this.container.style.top = '0';
+	    this.container.style.left = '0';
+	    this.container.style.width = '100%';
+	    this.container.style.height = '100%';
 	
 	    this._slides = this.config.slides;
 	    this._currentSlideIndex = this._transitionToIndex = 0;
@@ -230,7 +237,7 @@ var Showy =
 	
 	      if (!this._ready) {
 	        this._ready = true;
-	        this.container.classList.add('ready');
+	        this.container.classList.add('showy--ready');
 	      }
 	
 	      var slide = this._slides[this._transitionToIndex];
