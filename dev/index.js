@@ -31,6 +31,7 @@ var config = {
         duration: 2000,
         priority: 1,
       },
+      background: '#FF0000',
       content: [
         {
           type: 'image',

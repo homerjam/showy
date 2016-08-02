@@ -1,7 +1,5 @@
 /**
  * TODO
- * - play/pause
- * - background color
  * - events (ready, progress etc)
  * - cache video frames (assume frame rate and round currentTime to get frame)
  * - video options (loop?)
@@ -29,7 +27,7 @@ class Showy {
       container: 'body',
       slides: [],
       transitions,
-      autoplay: true,
+      autoplay: false,
       slideDuration: 3000,
       transition: {
         name: 'random',
@@ -56,6 +54,7 @@ class Showy {
     this._slideContentMap = {};
     this._ready = false;
     this._destroyed = false;
+    this._playing = this.config.autoplay;
 
     this._createCanvases();
 
@@ -75,6 +74,10 @@ class Showy {
     this._currentSlideRendered = false;
 
     this._playSlideContent(this._transitionToIndex);
+
+    if (this._autoPlayTimeout) {
+      clearTimeout(this._autoPlayTimeout);
+    }
   }
 
   nextSlide() {
@@ -94,6 +97,20 @@ class Showy {
 
     } else {
       this.goToSlide(this._currentSlideIndex === 0 ? this._slides.length - 1 : this._currentSlideIndex - 1, TRANSITION_BACKWARDS);
+    }
+  }
+
+  play() {
+    this._playing = true;
+
+    this.nextSlide();
+  }
+
+  pause() {
+    this._playing = false;
+
+    if (this._autoPlayTimeout) {
+      clearTimeout(this._autoPlayTimeout);
     }
   }
 
@@ -119,7 +136,7 @@ class Showy {
 
     const slide = this._slides[this._transitionToIndex];
 
-    if (this.config.autoplay) {
+    if (this._playing) {
       if (slide.duration && _.isFunction(slide.duration)) {
         let object = slide.duration();
 
@@ -144,7 +161,7 @@ class Showy {
 
     const slide = this._slides[this._transitionToIndex];
 
-    if (this.config.autoplay) {
+    if (this._playing) {
       let slideDuration = this.config.slideDuration;
 
       if (slide.duration) {
@@ -161,7 +178,7 @@ class Showy {
         }
       }
 
-      setTimeout(() => {
+      this._autoPlayTimeout = setTimeout(() => {
         this.nextSlide();
       }, slideDuration);
     }
@@ -375,6 +392,11 @@ class Showy {
     slide._ready = false;
     if (!slide._loaded) {
       slide._loaded = false;
+    }
+
+    if (slide.background) {
+      context.fillStyle = slide.background;
+      context.fillRect(0, 0, context.canvas.width, context.canvas.height);
     }
 
     if (slide.content.length) {
