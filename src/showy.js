@@ -1,17 +1,20 @@
 /**
  * TODO
- * - autoplay
- * - cache video frames (assume frame rate and round currentTime to get frame)
+ * - play/pause
  * - background color
- * - events (ready, slide-loaded, progress etc)
- * - video options (loop)
+ * - events (ready, progress etc)
+ * - cache video frames (assume frame rate and round currentTime to get frame)
+ * - video options (loop?)
  * - fallback for no-video / autoplay on mobile
  * - effects/filters (sepia / grayscale etc)
  * - fallback for no-webgl (use gsap?)
  */
 
+import transitions from './transitions';
+
 const TRANSITION_FORWARDS = 'forwards';
 const TRANSITION_BACKWARDS = 'backwards';
+const TRANSITION_RANDOM = 'random';
 
 // Polyfill playing status
 Object.defineProperty(HTMLMediaElement.prototype, 'playing', {
@@ -25,9 +28,11 @@ class Showy {
     const defaultConfig = {
       container: 'body',
       slides: [],
-      glslTransitions: {},
+      transitions,
+      autoplay: true,
+      slideDuration: 3000,
       transition: {
-        name: 'slide',
+        name: 'random',
         duration: 2000,
         ease: 'linear',
         priority: 0,
@@ -44,10 +49,12 @@ class Showy {
 
     this._slides = this.config.slides;
     this._currentSlideIndex = this._transitionToIndex = 0;
+    this._currentSlideRendered = false;
     this._transitionProgress = 0;
     this._imageMap = {};
     this._videoMap = {};
     this._slideContentMap = {};
+    this._ready = false;
     this._destroyed = false;
 
     this._createCanvases();
@@ -61,32 +68,33 @@ class Showy {
     window.requestAnimationFrame(this._animate.bind(this));
   }
 
-  nextSlide() {
-    this._transitionDirection = TRANSITION_FORWARDS;
+  goToSlide(index, direction) {
+    this._transitionToIndex = index;
+    this._transitionDirection = direction;
 
-    if (this._transitionToIndex === this._currentSlideIndex - 1 || (this._transitionToIndex === this._slides.length - 1 && this._currentSlideIndex === 0)) {
-      // Cancel and reverse the transition
-      this._transitionToIndex = this._currentSlideIndex;
-
-    } else {
-      this._transitionToIndex = this._currentSlideIndex === this._slides.length - 1 ? 0 : this._currentSlideIndex + 1;
-    }
+    this._currentSlideRendered = false;
 
     this._playSlideContent(this._transitionToIndex);
   }
 
-  prevSlide() {
-    this._transitionDirection = TRANSITION_BACKWARDS;
-
-    if (this._transitionToIndex === this._currentSlideIndex + 1 || (this._transitionToIndex === 0 && this._currentSlideIndex === this._slides.length - 1)) {
+  nextSlide() {
+    if (this._transitionToIndex === this._currentSlideIndex - 1 || (this._transitionToIndex === this._slides.length - 1 && this._currentSlideIndex === 0)) {
       // Cancel and reverse the transition
-      this._transitionToIndex = this._currentSlideIndex;
+      this.goToSlide(this._currentSlideIndex, TRANSITION_FORWARDS);
 
     } else {
-      this._transitionToIndex = this._currentSlideIndex === 0 ? this._slides.length - 1 : this._currentSlideIndex - 1;
+      this.goToSlide(this._currentSlideIndex === this._slides.length - 1 ? 0 : this._currentSlideIndex + 1, TRANSITION_FORWARDS);
     }
+  }
 
-    this._playSlideContent(this._transitionToIndex);
+  prevSlide() {
+    if (this._transitionToIndex === this._currentSlideIndex + 1 || (this._transitionToIndex === 0 && this._currentSlideIndex === this._slides.length - 1)) {
+      // Cancel and reverse the transition
+      this.goToSlide(this._currentSlideIndex, TRANSITION_BACKWARDS);
+
+    } else {
+      this.goToSlide(this._currentSlideIndex === 0 ? this._slides.length - 1 : this._currentSlideIndex - 1, TRANSITION_BACKWARDS);
+    }
   }
 
   destroy() {
@@ -100,6 +108,63 @@ class Showy {
       video = null;
     }
     this._videoMap = null;
+  }
+
+  _transitionEnded() {
+    // console.log('Transition Ended', this._currentSlideIndex, this._slides[this._currentSlideIndex]);
+  }
+
+  _videoEnded(video, videoObject) {
+    // console.log('Video Ended', video._playCount, videoObject);
+
+    const slide = this._slides[this._transitionToIndex];
+
+    if (this.config.autoplay) {
+      if (slide.duration && _.isFunction(slide.duration)) {
+        let object = slide.duration();
+
+        if (object.type === 'video') {
+          this.nextSlide();
+        }
+      }
+    }
+  }
+
+  _slideLoaded(slide, slideIndex) {
+    // console.log('Slide Loaded', slideIndex, slide);
+  }
+
+  _slideRendered() {
+    // console.log('Slide Rendered', this._transitionToIndex, this._slides[this._transitionToIndex]);
+
+    if (!this._ready) {
+      this._ready = true;
+      this.container.classList.add('ready');
+    }
+
+    const slide = this._slides[this._transitionToIndex];
+
+    if (this.config.autoplay) {
+      let slideDuration = this.config.slideDuration;
+
+      if (slide.duration) {
+        if (_.isFunction(slide.duration)) {
+          let object = slide.duration();
+
+          if (object.type === 'video') {
+            return;
+          }
+        }
+
+        if (_.isNumber(slide.duration)) {
+          slideDuration = slide.duration;
+        }
+      }
+
+      setTimeout(() => {
+        this.nextSlide();
+      }, slideDuration);
+    }
   }
 
   _animate(frameTime) {
@@ -173,11 +238,19 @@ class Showy {
     return this._transitionProgress > 0 && this._transitionProgress < 1;
   }
 
-  _getTransition(currentSlideTransition = {} , nextPrevSlideTransition = {}) {
+  _getTransition(currentSlideTransition = {}, nextPrevSlideTransition = {}) {
     const _currentSlideTransition = _.merge({}, this.config.transition, currentSlideTransition || {});
     const _nextPrevSlideTransition = _.merge({}, this.config.transition, nextPrevSlideTransition || {});
-    _currentSlideTransition.shader = this.config.glslTransitions[_currentSlideTransition.name];
-    _nextPrevSlideTransition.shader = this.config.glslTransitions[_nextPrevSlideTransition.name];
+    if (_currentSlideTransition.name === TRANSITION_RANDOM) {
+      _currentSlideTransition.shader = _.sample(this.config.transitions);
+    } else {
+      _currentSlideTransition.shader = this.config.transitions[_currentSlideTransition.name];
+    }
+    if (_nextPrevSlideTransition.name === TRANSITION_RANDOM) {
+      _nextPrevSlideTransition.shader = _.sample(this.config.transitions);
+    } else {
+      _nextPrevSlideTransition.shader = this.config.transitions[_nextPrevSlideTransition.name];
+    }
     return _currentSlideTransition.priority >= _nextPrevSlideTransition.priority ? _currentSlideTransition : _nextPrevSlideTransition;
   }
 
@@ -256,7 +329,7 @@ class Showy {
       this._toTexture = this._fromTexture;
     }
 
-    if (transition && this.transition.name !== transition.name) {
+    if (transition && !this._transitionInProgress() && (this.transition.name !== transition.name || this.transition.name === TRANSITION_RANDOM)) {
       this.transition = transition;
       if (this._transition) {
         this._transition.dispose();
@@ -275,6 +348,11 @@ class Showy {
     // We have rendered the current slide for the first time
     if (currentSlide._ready) {
       currentSlide._rendered = true;
+
+      if (!this._currentSlideRendered) {
+        this._currentSlideRendered = true;
+        this._slideRendered();
+      }
     }
 
     // Transition is finished
@@ -287,7 +365,7 @@ class Showy {
 
       this._pauseSlideContent();
 
-      console.log('Transition Ended', this._currentSlideIndex);
+      this._transitionEnded();
     }
   }
 
@@ -312,8 +390,7 @@ class Showy {
 
       if (!slide._loaded) {
         slide._loaded = true;
-
-        console.log('Slide Loaded: ', this._slides.indexOf(slide));
+        this._slideLoaded(slide, this._slides.indexOf(slide));
       }
       return;
     }
@@ -561,12 +638,13 @@ class Showy {
     return tempContext._getImageData(0, 0, video.videoWidth, video.videoHeight).data;
   }
 
-  _getVideo(object, callback) {
+  _getVideo(object, callback = () => {}) {
     const videoKey = JSON.stringify(object.sources);
 
     if (this._videoMap[videoKey]) {
       callback(this._videoMap[videoKey]);
-      return;
+
+      return this._videoMap[videoKey];
     }
 
     const video = document.createElement('video');
@@ -595,8 +673,10 @@ class Showy {
 
       video._playCount += 1;
 
-      console.log('Video Ended', video._playCount, object);
+      this._videoEnded(video, object);
     });
+
+    return video;
   }
 
   _drawVideo(context, object, callback) {
@@ -652,6 +732,14 @@ class Showy {
   }
 
   _pauseSlideContent() {
+    const currentSlideVideos = [];
+
+    this._slides[this._currentSlideIndex].content.forEach(object => {
+      if (object.type === 'video') {
+        currentSlideVideos.push(this._getVideo(object));
+      }
+    });
+
     this._slides.forEach((slide, index) => {
       if (index === this._currentSlideIndex) {
         return;
@@ -660,9 +748,11 @@ class Showy {
       slide.content.forEach(object => {
         if (object.type === 'video') {
           this._getVideo(object, video => {
-            video._playCount = 0;
-            video.currentTime = 0;
-            video.pause();
+            if (currentSlideVideos.indexOf(video) === -1) {
+              video._playCount = 0;
+              video.currentTime = 0;
+              video.pause();
+            }
           });
         }
       });

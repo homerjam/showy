@@ -16,9 +16,8 @@ console.log(glslTransitions);
 var config = {
   container: document.querySelector('.container'),
   autoplay: true,
-  loop: true,
-  duration: 2000,
-  glslTransitions: glslTransitions,
+  slideDuration: 2000,
+  transitions: glslTransitions,
   transition: {
     name: 'dreamy',
     duration: 2000,
@@ -26,7 +25,7 @@ var config = {
   },
   slides: [
     {
-      duration: 2000, // optional
+      // duration: 2000, // optional
       transitionNext: {
         name: 'warpfade', // name/id/key/slug
         duration: 2000,
@@ -98,7 +97,7 @@ var config = {
       ],
     },
     {
-      duration: 2000, // optional
+      duration: 3000, // optional
       content: [
         {
           type: 'video',
@@ -136,7 +135,9 @@ var config = {
       ],
     },
     {
-      duration: 2000, // optional
+      duration: function() {
+        return this.content[0];
+      }, // optional
       transitionPrev: {
         name: 'cube', // name/id/key/slug
         ease: 'bounceOut',
