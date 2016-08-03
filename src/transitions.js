@@ -1,6 +1,38 @@
 const transitions = {
+  none: {
+    shader: `
+      #ifdef GL_ES
+      precision highp float;
+      #endif
+      uniform sampler2D from, to;
+      uniform float progress;
+      uniform vec2 resolution;
+
+      void main() {
+        vec2 p = gl_FragCoord.xy / resolution.xy;
+        gl_FragColor = texture2D(to, p);
+      }
+    `,
+    uniforms: {},
+  },
+  crossfade: {
+    shader: `
+      #ifdef GL_ES
+      precision highp float;
+      #endif
+      uniform sampler2D from, to;
+      uniform float progress;
+      uniform vec2 resolution;
+
+      void main() {
+        vec2 p = gl_FragCoord.xy / resolution.xy;
+        gl_FragColor = mix(texture2D(from, p), texture2D(to, p), progress);
+      }
+    `,
+    uniforms: {},
+  },
   wipeUp: {
-    glsl: `
+    shader: `
       #ifdef GL_ES
       precision highp float;
       #endif
@@ -18,7 +50,7 @@ const transitions = {
     uniforms: {},
   },
   wipeDown: {
-    glsl: `
+    shader: `
       #ifdef GL_ES
       precision highp float;
       #endif
@@ -36,7 +68,7 @@ const transitions = {
     uniforms: {},
   },
   wipeRight: {
-    glsl: `
+    shader: `
       #ifdef GL_ES
       precision highp float;
       #endif
@@ -54,7 +86,7 @@ const transitions = {
     uniforms: {},
   },
   wipeLeft: {
-    glsl: `
+    shader: `
       #ifdef GL_ES
       precision highp float;
       #endif
@@ -72,7 +104,7 @@ const transitions = {
     uniforms: {},
   },
   circle: {
-    glsl: `
+    shader: `
       #ifdef GL_ES
       precision highp float;
       #endif
@@ -105,7 +137,7 @@ const transitions = {
     },
   },
   circleInOut: {
-    glsl: `
+    shader: `
       #ifdef GL_ES
       precision highp float;
       #endif
@@ -139,7 +171,7 @@ const transitions = {
     uniforms: {},
   },
   splitVertical: {
-    glsl: `
+    shader: `
       #ifdef GL_ES
       precision highp float;
       #endif
@@ -210,7 +242,7 @@ const transitions = {
     },
   },
   slideUp: {
-    glsl: `
+    shader: `
       #ifdef GL_ES
       precision highp float;
       #endif
@@ -261,7 +293,7 @@ const transitions = {
     },
   },
   slideDown: {
-    glsl: `
+    shader: `
       #ifdef GL_ES
       precision highp float;
       #endif
@@ -312,7 +344,7 @@ const transitions = {
     },
   },
   slideLeft: {
-    glsl: `
+    shader: `
       #ifdef GL_ES
       precision highp float;
       #endif
@@ -363,7 +395,7 @@ const transitions = {
     },
   },
   slideRight: {
-    glsl: `
+    shader: `
       #ifdef GL_ES
       precision highp float;
       #endif
