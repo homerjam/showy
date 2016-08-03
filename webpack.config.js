@@ -7,6 +7,7 @@ module.exports = {
   entry: './src/showy.js',
   output: {
     library: 'Showy',
+    libraryTarget: 'umd',
     path: path.resolve(__dirname, 'dist'),
     publicPath: '/dist/',
     filename: 'showy.pkgd.js',

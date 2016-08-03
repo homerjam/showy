@@ -378,6 +378,7 @@ class Showy {
       if (this._transitionToIndex !== this._currentSlideIndex || this._transitionInProgress()) {
         // Increment the transition progress depending on the direction
         const progressIncrement = 60 / this._transitionOptions.duration;
+
         if (this._transitionDirection === TRANSITION_FORWARDS) {
           this._transitionProgress = this._transitionInProgress() ? this._transitionProgress + progressIncrement : progressIncrement;
         }
@@ -480,7 +481,7 @@ class Showy {
   }
 
   _position2Pixels(position, scale = 1) {
-    const pixels = [];
+    const _pixels = [];
 
     position.forEach((val, index) => {
       let pixel;
@@ -489,29 +490,31 @@ class Showy {
 
       length /= scale;
 
-      if (val <= 1) {
+      if (val >= 0 && val <= 1) {
         if (index < 2) {
           pixel = val * length;
         } else {
-          pixel = (val * length) - pixels[index - 2];
+          pixel = (val * length) - _pixels[index - 2];
         }
       } else {
         if (index < 2) {
           pixel = val;
         } else {
-          pixel = length - pixels[index - 2] - val;
+          pixel = length - _pixels[index - 2] - Math.abs(val);
         }
       }
 
-      pixels.push(pixel);
+      _pixels.push(pixel);
     });
 
-    return {
-      x: pixels[0] * scale,
-      y: pixels[1] * scale,
-      width: pixels[2] * scale,
-      height: pixels[3] * scale,
+    const pixels = {
+      x: _pixels[0] * scale,
+      y: _pixels[1] * scale,
+      width: _pixels[2] * scale,
+      height: _pixels[3] * scale,
     };
+
+    return pixels;
   }
 
   _updateCoords(src, dst, scaleMode) {
@@ -650,11 +653,22 @@ class Showy {
       unsharpRadius: 0.5,
       unsharpThreshold: 0,
     }, (error, buffer) => {
-      const resizedImageData = new ImageData(new Uint8ClampedArray(buffer), dst.width, dst.height);
+      if (error) {
+        console.error(error);
+        return;
+      }
 
-      this._slideContentMap[resizedImageKey] = resizedImageData;
+      if (buffer.length) {
+        const resizedImageData = new ImageData(new Uint8ClampedArray(buffer), dst.width, dst.height);
 
-      callback(this._slideContentMap[resizedImageKey]);
+        this._slideContentMap[resizedImageKey] = resizedImageData;
+
+        callback(this._slideContentMap[resizedImageKey]);
+
+        return;
+      }
+
+      console.error(new Error('Resize failed'), image.src, src, dst);
     });
   }
 

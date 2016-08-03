@@ -8,14 +8,17 @@ function camelize (str) {
 var glslTransitions = {};
 
 GlslTransitions.forEach(function (transition) {
-  glslTransitions[camelize(transition.name)] = transition;
+  glslTransitions[camelize(transition.name)] = {
+    shader: transition.glsl,
+    uniforms: transition.uniforms,
+  };
 });
 
 console.log(glslTransitions);
 
 var config = {
   container: document.querySelector('.container'),
-  autoplay: true,
+  // autoplay: true,
   slideDuration: 2000,
   transitions: glslTransitions,
   transition: {
@@ -39,9 +42,9 @@ var config = {
           // url: function() { // ...function returning a string
           //   return 'assets/carpark.jpg',
           // },
-          position: [100, 50, 0.5, 0.75], // [x, y, x2, y2] either percentage based or...
+          position: [100, 100, 0.4, 0.8], // [x, y, x2, y2] either percentage based or...
           // position: [100, 100, 100, 100], // [x, y, w - x2, h - y2] ...pixels from edges
-          scaleMode: 'fit', // fit|fill
+          scaleMode: 'fill', // fit|fill
           tile: {
             size: [0.2, 0.2], // [w, h] either percentage based or...
             // size: [100, 100], // [w, h] ...in pixels
@@ -71,9 +74,9 @@ var config = {
           // url: function() { // ...function returning a string
           //   return 'assets/carpark.jpg',
           // },
-          position: [0.6, 50, 0.95, 0.25], // [x, y, x2, y2] either percentage based or...
+          position: [0.6, 100, -100, 0.5], // [x, y, x2, y2] either percentage based or...
           // position: [100, 100, 100, 100], // [x, y, w - x2, h - y2] ...pixels from edges
-          scaleMode: 'fill', // fit|fill
+          scaleMode: 'fit', // fit|fill
           tile: {
             // size: [0.2, 0.2], // [w, h] either percentage based or...
             size: [100, 100], // [w, h] ...in pixels
@@ -86,9 +89,9 @@ var config = {
           // url: function() { // ...function returning a string
           //   return 'assets/carpark.jpg',
           // },
-          position: [0.75, 50, 0.95, 50], // [x, y, x2, y2] either percentage based or...
+          position: [0.75, 0.75, -50, -50], // [x, y, x2, y2] either percentage based or...
           // position: [100, 100, 100, 100], // [x, y, w - x2, h - y2] ...pixels from edges
-          scaleMode: 'fill', // fit|fill
+          scaleMode: 'fit', // fit|fill
           tile: {
             size: [0.2, 0.2], // [w, h] either percentage based or...
             // size: [100, 100], // [w, h] ...in pixels
