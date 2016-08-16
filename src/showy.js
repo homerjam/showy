@@ -624,6 +624,11 @@ class Showy {
     const image = new Image();
     image.crossOrigin = 'Anonymous';
     image.src = imageUrl;
+    image.onerror = event => {
+      this.destroy();
+
+      throw new Error('Image failed to load', imageUrl);
+    };
     image.onload = event => {
       this._imageMap[imageUrl] = image;
       callback(image);
