@@ -1,4 +1,4 @@
-const transitions = {
+var transitions = {
   none: {
     shader: `
       #ifdef GL_ES
@@ -447,4 +447,4 @@ const transitions = {
   },
 };
 
-export default transitions;
+module.exports = transitions;
