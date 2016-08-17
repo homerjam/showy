@@ -3,8 +3,7 @@ var webpack = require('webpack');
 
 module.exports = {
   devtool: 'source-map',
-  // entry: ['babel-polyfill', './showy.webpack.js'],
-  entry: './src/showy.js',
+  entry: './showy.js',
   output: {
     library: 'Showy',
     libraryTarget: 'umd',

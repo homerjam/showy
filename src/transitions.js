@@ -447,4 +447,4 @@ const transitions = {
   },
 };
 
-module.exports = transitions;
+export default transitions;

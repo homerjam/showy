@@ -54,6 +54,19 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
+	'use strict';
+	
+	var Showy = __webpack_require__(1).default;
+	Showy.DefaultTransitions = __webpack_require__(80).default;
+	
+	window.Showy = Showy;
+	
+	module.exports = Showy;
+
+/***/ },
+/* 1 */
+/***/ function(module, exports, __webpack_require__) {
+
 	/* WEBPACK VAR INJECTION */(function(_, createTexture, createTransition, eases, pica) {'use strict';
 	
 	Object.defineProperty(exports, "__esModule", {
@@ -62,26 +75,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 	
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /**
-	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * TODO
-	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * - autoplay: wait for slide._loaded
-	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * - optionally reset video on change
-	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * - fade objects on load
-	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * - events (ready, progress etc)
-	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * - cache video frames (assume frame rate and round currentTime to get frame)
-	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * - video options (loop?, sound?)
-	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * - fallback for no-video / autoplay on mobile
-	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * - effects/filters (sepia / grayscale etc)
-	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * - fallback for no-webgl (use gsap?)
-	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
-	
-	var _transitions = __webpack_require__(79);
-	
-	var _transitions2 = _interopRequireDefault(_transitions);
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	/**
+	 * TODO
+	 * - autoplay: wait for slide._loaded
+	 * - optionally reset video on change
+	 * - fade objects on load
+	 * - events (ready, progress etc)
+	 * - cache video frames (assume frame rate and round currentTime to get frame)
+	 * - video options (loop?, sound?)
+	 * - fallback for no-video / autoplay on mobile
+	 * - effects/filters (sepia / grayscale etc)
+	 * - fallback for no-webgl (use gsap?)
+	 */
 	
 	var TRANSITION_FORWARDS = 'forwards';
 	var TRANSITION_BACKWARDS = 'backwards';
@@ -105,7 +114,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      slides: [],
 	      autoplay: false,
 	      slideDuration: 3000,
-	      transitions: _transitions2.default,
+	      transitions: Showy.DefaultTransitions,
 	      transition: {
 	        name: 'random',
 	        duration: 2000,
@@ -977,10 +986,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	}();
 	
 	exports.default = Showy;
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1), __webpack_require__(3), __webpack_require__(19), __webpack_require__(46), __webpack_require__(78)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2), __webpack_require__(4), __webpack_require__(20), __webpack_require__(47), __webpack_require__(79)))
 
 /***/ },
-/* 1 */
+/* 2 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(module, global, _) {/**
@@ -17388,10 +17397,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	}.call(this));
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)(module), (function() { return this; }()), __webpack_require__(1)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)(module), (function() { return this; }()), __webpack_require__(2)))
 
 /***/ },
-/* 2 */
+/* 3 */
 /***/ function(module, exports) {
 
 	module.exports = function(module) {
@@ -17407,14 +17416,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 3 */
+/* 4 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict'
 	
-	var ndarray = __webpack_require__(4)
-	var ops     = __webpack_require__(7)
-	var pool    = __webpack_require__(12)
+	var ndarray = __webpack_require__(5)
+	var ops     = __webpack_require__(8)
+	var pool    = __webpack_require__(13)
 	
 	module.exports = createTexture2D
 	
@@ -17970,11 +17979,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 4 */
+/* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var iota = __webpack_require__(5)
-	var isBuffer = __webpack_require__(6)
+	var iota = __webpack_require__(6)
+	var isBuffer = __webpack_require__(7)
 	
 	var hasTypedArrays  = ((typeof Float64Array) !== "undefined")
 	
@@ -18319,7 +18328,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 5 */
+/* 6 */
 /***/ function(module, exports) {
 
 	"use strict"
@@ -18335,7 +18344,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = iota
 
 /***/ },
-/* 6 */
+/* 7 */
 /***/ function(module, exports) {
 
 	/**
@@ -18358,12 +18367,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 7 */
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict"
 	
-	var compile = __webpack_require__(8)
+	var compile = __webpack_require__(9)
 	
 	var EmptyProc = {
 	  body: "",
@@ -18825,12 +18834,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 8 */
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict"
 	
-	var createThunk = __webpack_require__(9)
+	var createThunk = __webpack_require__(10)
 	
 	function Procedure() {
 	  this.argTypes = []
@@ -18940,7 +18949,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 9 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict"
@@ -18968,7 +18977,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	//   return thunk(compile.bind1(proc))
 	// }
 	
-	var compile = __webpack_require__(10)
+	var compile = __webpack_require__(11)
 	
 	function createThunk(proc) {
 	  var code = ["'use strict'", "var CACHED={}"]
@@ -19032,12 +19041,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 10 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict"
 	
-	var uniq = __webpack_require__(11)
+	var uniq = __webpack_require__(12)
 	
 	// This function generates very simple loops analogous to how you typically traverse arrays (the outermost loop corresponds to the slowest changing index, the innermost loop to the fastest changing index)
 	// TODO: If two arrays have the same strides (and offsets) there is potential for decreasing the number of "pointers" and related variables. The drawback is that the type signature would become more specific and that there would thus be less potential for caching, but it might still be worth it, especially when dealing with large numbers of arguments.
@@ -19392,7 +19401,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 11 */
+/* 12 */
 /***/ function(module, exports) {
 
 	"use strict"
@@ -19455,13 +19464,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 12 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global, Buffer) {'use strict'
 	
-	var bits = __webpack_require__(17)
-	var dup = __webpack_require__(18)
+	var bits = __webpack_require__(18)
+	var dup = __webpack_require__(19)
 	
 	//Legacy pool support
 	if(!global.__TYPEDARRAY_POOL) {
@@ -19672,10 +19681,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    BUFFER[i].length = 0
 	  }
 	}
-	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(13).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(14).Buffer))
 
 /***/ },
-/* 13 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(Buffer, global) {/*!
@@ -19688,9 +19697,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	'use strict'
 	
-	var base64 = __webpack_require__(14)
-	var ieee754 = __webpack_require__(15)
-	var isArray = __webpack_require__(16)
+	var base64 = __webpack_require__(15)
+	var ieee754 = __webpack_require__(16)
+	var isArray = __webpack_require__(17)
 	
 	exports.Buffer = Buffer
 	exports.SlowBuffer = SlowBuffer
@@ -21227,10 +21236,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return i
 	}
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(13).Buffer, (function() { return this; }())))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(14).Buffer, (function() { return this; }())))
 
 /***/ },
-/* 14 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
@@ -21360,7 +21369,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 15 */
+/* 16 */
 /***/ function(module, exports) {
 
 	exports.read = function (buffer, offset, isLE, mLen, nBytes) {
@@ -21450,7 +21459,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 16 */
+/* 17 */
 /***/ function(module, exports) {
 
 	var toString = {}.toString;
@@ -21461,7 +21470,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 17 */
+/* 18 */
 /***/ function(module, exports) {
 
 	/**
@@ -21671,7 +21680,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 18 */
+/* 19 */
 /***/ function(module, exports) {
 
 	"use strict"
@@ -21725,10 +21734,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = dupe
 
 /***/ },
-/* 19 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var createShader  = __webpack_require__(20);
+	var createShader  = __webpack_require__(21);
 	
 	var vertexShader = 'attribute vec2 position; void main() { gl_Position = vec4(2.0*position-1.0, 0.0, 1.0);}';
 	
@@ -21803,17 +21812,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 20 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict'
 	
-	var createUniformWrapper   = __webpack_require__(21)
-	var createAttributeWrapper = __webpack_require__(24)
-	var makeReflect            = __webpack_require__(22)
-	var shaderCache            = __webpack_require__(25)
-	var runtime                = __webpack_require__(45)
-	var GLError                = __webpack_require__(23)
+	var createUniformWrapper   = __webpack_require__(22)
+	var createAttributeWrapper = __webpack_require__(25)
+	var makeReflect            = __webpack_require__(23)
+	var shaderCache            = __webpack_require__(26)
+	var runtime                = __webpack_require__(46)
+	var GLError                = __webpack_require__(24)
 	
 	//Shader object
 	function Shader(gl) {
@@ -22043,13 +22052,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 21 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict'
 	
-	var coallesceUniforms = __webpack_require__(22)
-	var GLError = __webpack_require__(23)
+	var coallesceUniforms = __webpack_require__(23)
+	var GLError = __webpack_require__(24)
 	
 	module.exports = createUniformWrapper
 	
@@ -22240,7 +22249,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 22 */
+/* 23 */
 /***/ function(module, exports) {
 
 	'use strict'
@@ -22302,7 +22311,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 /***/ },
-/* 23 */
+/* 24 */
 /***/ function(module, exports) {
 
 	function GLError (rawError, shortMessage, longMessage) {
@@ -22321,14 +22330,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 24 */
+/* 25 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict'
 	
 	module.exports = createAttributeWrapper
 	
-	var GLError = __webpack_require__(23)
+	var GLError = __webpack_require__(24)
 	
 	function ShaderAttribute(
 	    gl
@@ -22590,7 +22599,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 25 */
+/* 26 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict'
@@ -22598,10 +22607,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.shader   = getShaderReference
 	exports.program  = createProgram
 	
-	var GLError = __webpack_require__(23)
-	var formatCompilerError = __webpack_require__(26);
+	var GLError = __webpack_require__(24)
+	var formatCompilerError = __webpack_require__(27);
 	
-	var weakMap = typeof WeakMap === 'undefined' ? __webpack_require__(42) : WeakMap
+	var weakMap = typeof WeakMap === 'undefined' ? __webpack_require__(43) : WeakMap
 	var CACHE = new weakMap()
 	
 	var SHADER_COUNTER = 0
@@ -22732,14 +22741,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 26 */
+/* 27 */
 /***/ function(module, exports, __webpack_require__) {
 
 	
-	var sprintf = __webpack_require__(27).sprintf;
-	var glConstants = __webpack_require__(28);
-	var shaderName = __webpack_require__(30);
-	var addLineNumbers = __webpack_require__(39);
+	var sprintf = __webpack_require__(28).sprintf;
+	var glConstants = __webpack_require__(29);
+	var shaderName = __webpack_require__(31);
+	var addLineNumbers = __webpack_require__(40);
 	
 	module.exports = formatCompilerError;
 	
@@ -22791,7 +22800,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 27 */
+/* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
 	(function(window) {
@@ -23005,10 +23014,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 28 */
+/* 29 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var gl10 = __webpack_require__(29)
+	var gl10 = __webpack_require__(30)
 	
 	module.exports = function lookupConstant (number) {
 	  return gl10[number]
@@ -23016,7 +23025,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 29 */
+/* 30 */
 /***/ function(module, exports) {
 
 	module.exports = {
@@ -23320,11 +23329,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 30 */
+/* 31 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var tokenize = __webpack_require__(31)
-	var atob     = __webpack_require__(38)
+	var tokenize = __webpack_require__(32)
+	var atob     = __webpack_require__(39)
 	
 	module.exports = getName
 	
@@ -23349,10 +23358,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 31 */
+/* 32 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var tokenize = __webpack_require__(32)
+	var tokenize = __webpack_require__(33)
 	
 	module.exports = tokenizeString
 	
@@ -23368,16 +23377,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 32 */
+/* 33 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = tokenize
 	
-	var literals100 = __webpack_require__(33)
-	  , operators = __webpack_require__(34)
-	  , builtins100 = __webpack_require__(35)
-	  , literals300es = __webpack_require__(36)
-	  , builtins300es = __webpack_require__(37)
+	var literals100 = __webpack_require__(34)
+	  , operators = __webpack_require__(35)
+	  , builtins100 = __webpack_require__(36)
+	  , literals300es = __webpack_require__(37)
+	  , builtins300es = __webpack_require__(38)
 	
 	var NORMAL = 999          // <-- never emitted
 	  , TOKEN = 9999          // <-- never emitted
@@ -23736,7 +23745,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 33 */
+/* 34 */
 /***/ function(module, exports) {
 
 	module.exports = [
@@ -23835,7 +23844,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 34 */
+/* 35 */
 /***/ function(module, exports) {
 
 	module.exports = [
@@ -23888,7 +23897,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 35 */
+/* 36 */
 /***/ function(module, exports) {
 
 	module.exports = [
@@ -24044,10 +24053,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 36 */
+/* 37 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var v100 = __webpack_require__(33)
+	var v100 = __webpack_require__(34)
 	
 	module.exports = v100.slice().concat([
 	   'layout'
@@ -24138,11 +24147,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 37 */
+/* 38 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// 300es builtins/reserved words that were previously valid in v100
-	var v100 = __webpack_require__(35)
+	var v100 = __webpack_require__(36)
 	
 	// The texture2D|Cube functions have been removed
 	// And the gl_ features are updated
@@ -24213,7 +24222,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 38 */
+/* 39 */
 /***/ function(module, exports) {
 
 	module.exports = function _atob(str) {
@@ -24222,10 +24231,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 39 */
+/* 40 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var padLeft = __webpack_require__(40)
+	var padLeft = __webpack_require__(41)
 	
 	module.exports = addLineNumbers
 	function addLineNumbers (string, start, delim) {
@@ -24244,7 +24253,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 40 */
+/* 41 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/*!
@@ -24256,7 +24265,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	'use strict';
 	
-	var repeat = __webpack_require__(41);
+	var repeat = __webpack_require__(42);
 	
 	module.exports = function padLeft(str, num, ch) {
 	  ch = typeof ch !== 'undefined' ? (ch + '') : ' ';
@@ -24264,7 +24273,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 41 */
+/* 42 */
 /***/ function(module, exports) {
 
 	/*!
@@ -24338,14 +24347,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 42 */
+/* 43 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// Original - @Gozola. 
 	// https://gist.github.com/Gozala/1269991
 	// This is a reimplemented version (with a few bug fixes).
 	
-	var createStore = __webpack_require__(43);
+	var createStore = __webpack_require__(44);
 	
 	module.exports = weakMap;
 	
@@ -24372,10 +24381,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 43 */
+/* 44 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var hiddenStore = __webpack_require__(44);
+	var hiddenStore = __webpack_require__(45);
 	
 	module.exports = createStore;
 	
@@ -24397,7 +24406,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 44 */
+/* 45 */
 /***/ function(module, exports) {
 
 	module.exports = hiddenStore;
@@ -24419,7 +24428,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 45 */
+/* 46 */
 /***/ function(module, exports) {
 
 	'use strict'
@@ -24503,45 +24512,45 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 46 */
+/* 47 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = {
-		'backInOut': __webpack_require__(47),
-		'backIn': __webpack_require__(48),
-		'backOut': __webpack_require__(49),
-		'bounceInOut': __webpack_require__(50),
-		'bounceIn': __webpack_require__(52),
-		'bounceOut': __webpack_require__(51),
-		'circInOut': __webpack_require__(53),
-		'circIn': __webpack_require__(54),
-		'circOut': __webpack_require__(55),
-		'cubicInOut': __webpack_require__(56),
-		'cubicIn': __webpack_require__(57),
-		'cubicOut': __webpack_require__(58),
-		'elasticInOut': __webpack_require__(59),
-		'elasticIn': __webpack_require__(60),
-		'elasticOut': __webpack_require__(61),
-		'expoInOut': __webpack_require__(62),
-		'expoIn': __webpack_require__(63),
-		'expoOut': __webpack_require__(64),
-		'linear': __webpack_require__(65),
-		'quadInOut': __webpack_require__(66),
-		'quadIn': __webpack_require__(67),
-		'quadOut': __webpack_require__(68),
-		'quartInOut': __webpack_require__(69),
-		'quartIn': __webpack_require__(70),
-		'quartOut': __webpack_require__(71),
-		'quintInOut': __webpack_require__(72),
-		'quintIn': __webpack_require__(73),
-		'quintOut': __webpack_require__(74),
-		'sineInOut': __webpack_require__(75),
-		'sineIn': __webpack_require__(76),
-		'sineOut': __webpack_require__(77)
+		'backInOut': __webpack_require__(48),
+		'backIn': __webpack_require__(49),
+		'backOut': __webpack_require__(50),
+		'bounceInOut': __webpack_require__(51),
+		'bounceIn': __webpack_require__(53),
+		'bounceOut': __webpack_require__(52),
+		'circInOut': __webpack_require__(54),
+		'circIn': __webpack_require__(55),
+		'circOut': __webpack_require__(56),
+		'cubicInOut': __webpack_require__(57),
+		'cubicIn': __webpack_require__(58),
+		'cubicOut': __webpack_require__(59),
+		'elasticInOut': __webpack_require__(60),
+		'elasticIn': __webpack_require__(61),
+		'elasticOut': __webpack_require__(62),
+		'expoInOut': __webpack_require__(63),
+		'expoIn': __webpack_require__(64),
+		'expoOut': __webpack_require__(65),
+		'linear': __webpack_require__(66),
+		'quadInOut': __webpack_require__(67),
+		'quadIn': __webpack_require__(68),
+		'quadOut': __webpack_require__(69),
+		'quartInOut': __webpack_require__(70),
+		'quartIn': __webpack_require__(71),
+		'quartOut': __webpack_require__(72),
+		'quintInOut': __webpack_require__(73),
+		'quintIn': __webpack_require__(74),
+		'quintOut': __webpack_require__(75),
+		'sineInOut': __webpack_require__(76),
+		'sineIn': __webpack_require__(77),
+		'sineOut': __webpack_require__(78)
 	}
 
 /***/ },
-/* 47 */
+/* 48 */
 /***/ function(module, exports) {
 
 	function backInOut(t) {
@@ -24554,7 +24563,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = backInOut
 
 /***/ },
-/* 48 */
+/* 49 */
 /***/ function(module, exports) {
 
 	function backIn(t) {
@@ -24565,7 +24574,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = backIn
 
 /***/ },
-/* 49 */
+/* 50 */
 /***/ function(module, exports) {
 
 	function backOut(t) {
@@ -24576,10 +24585,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = backOut
 
 /***/ },
-/* 50 */
+/* 51 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var bounceOut = __webpack_require__(51)
+	var bounceOut = __webpack_require__(52)
 	
 	function bounceInOut(t) {
 	  return t < 0.5
@@ -24590,7 +24599,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = bounceInOut
 
 /***/ },
-/* 51 */
+/* 52 */
 /***/ function(module, exports) {
 
 	function bounceOut(t) {
@@ -24616,10 +24625,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = bounceOut
 
 /***/ },
-/* 52 */
+/* 53 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var bounceOut = __webpack_require__(51)
+	var bounceOut = __webpack_require__(52)
 	
 	function bounceIn(t) {
 	  return 1.0 - bounceOut(1.0 - t)
@@ -24628,7 +24637,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = bounceIn
 
 /***/ },
-/* 53 */
+/* 54 */
 /***/ function(module, exports) {
 
 	function circInOut(t) {
@@ -24639,7 +24648,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = circInOut
 
 /***/ },
-/* 54 */
+/* 55 */
 /***/ function(module, exports) {
 
 	function circIn(t) {
@@ -24649,7 +24658,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = circIn
 
 /***/ },
-/* 55 */
+/* 56 */
 /***/ function(module, exports) {
 
 	function circOut(t) {
@@ -24659,7 +24668,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = circOut
 
 /***/ },
-/* 56 */
+/* 57 */
 /***/ function(module, exports) {
 
 	function cubicInOut(t) {
@@ -24671,7 +24680,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = cubicInOut
 
 /***/ },
-/* 57 */
+/* 58 */
 /***/ function(module, exports) {
 
 	function cubicIn(t) {
@@ -24681,7 +24690,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = cubicIn
 
 /***/ },
-/* 58 */
+/* 59 */
 /***/ function(module, exports) {
 
 	function cubicOut(t) {
@@ -24692,7 +24701,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = cubicOut
 
 /***/ },
-/* 59 */
+/* 60 */
 /***/ function(module, exports) {
 
 	function elasticInOut(t) {
@@ -24704,7 +24713,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = elasticInOut
 
 /***/ },
-/* 60 */
+/* 61 */
 /***/ function(module, exports) {
 
 	function elasticIn(t) {
@@ -24714,7 +24723,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = elasticIn
 
 /***/ },
-/* 61 */
+/* 62 */
 /***/ function(module, exports) {
 
 	function elasticOut(t) {
@@ -24724,7 +24733,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = elasticOut
 
 /***/ },
-/* 62 */
+/* 63 */
 /***/ function(module, exports) {
 
 	function expoInOut(t) {
@@ -24738,7 +24747,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = expoInOut
 
 /***/ },
-/* 63 */
+/* 64 */
 /***/ function(module, exports) {
 
 	function expoIn(t) {
@@ -24748,7 +24757,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = expoIn
 
 /***/ },
-/* 64 */
+/* 65 */
 /***/ function(module, exports) {
 
 	function expoOut(t) {
@@ -24758,7 +24767,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = expoOut
 
 /***/ },
-/* 65 */
+/* 66 */
 /***/ function(module, exports) {
 
 	function linear(t) {
@@ -24768,7 +24777,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = linear
 
 /***/ },
-/* 66 */
+/* 67 */
 /***/ function(module, exports) {
 
 	function quadInOut(t) {
@@ -24781,7 +24790,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = quadInOut
 
 /***/ },
-/* 67 */
+/* 68 */
 /***/ function(module, exports) {
 
 	function quadIn(t) {
@@ -24791,7 +24800,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = quadIn
 
 /***/ },
-/* 68 */
+/* 69 */
 /***/ function(module, exports) {
 
 	function quadOut(t) {
@@ -24801,7 +24810,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = quadOut
 
 /***/ },
-/* 69 */
+/* 70 */
 /***/ function(module, exports) {
 
 	function quarticInOut(t) {
@@ -24813,7 +24822,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = quarticInOut
 
 /***/ },
-/* 70 */
+/* 71 */
 /***/ function(module, exports) {
 
 	function quarticIn(t) {
@@ -24823,7 +24832,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = quarticIn
 
 /***/ },
-/* 71 */
+/* 72 */
 /***/ function(module, exports) {
 
 	function quarticOut(t) {
@@ -24833,7 +24842,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = quarticOut
 
 /***/ },
-/* 72 */
+/* 73 */
 /***/ function(module, exports) {
 
 	function qinticInOut(t) {
@@ -24844,7 +24853,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = qinticInOut
 
 /***/ },
-/* 73 */
+/* 74 */
 /***/ function(module, exports) {
 
 	function qinticIn(t) {
@@ -24854,7 +24863,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = qinticIn
 
 /***/ },
-/* 74 */
+/* 75 */
 /***/ function(module, exports) {
 
 	function qinticOut(t) {
@@ -24864,7 +24873,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = qinticOut
 
 /***/ },
-/* 75 */
+/* 76 */
 /***/ function(module, exports) {
 
 	function sineInOut(t) {
@@ -24874,7 +24883,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = sineInOut
 
 /***/ },
-/* 76 */
+/* 77 */
 /***/ function(module, exports) {
 
 	function sineIn (t) {
@@ -24887,7 +24896,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 77 */
+/* 78 */
 /***/ function(module, exports) {
 
 	function sineOut(t) {
@@ -24897,7 +24906,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = sineOut
 
 /***/ },
-/* 78 */
+/* 79 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var require;var require;/* pica 2.0.3 nodeca/pica */(function(f){if(true){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.pica = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return require(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
@@ -26483,11 +26492,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	});
 
 /***/ },
-/* 79 */
+/* 80 */
 /***/ function(module, exports) {
 
 	"use strict";
 	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
 	var transitions = {
 	  none: {
 	    shader: "\n      #ifdef GL_ES\n      precision highp float;\n      #endif\n      uniform sampler2D from, to;\n      uniform float progress;\n      uniform vec2 resolution;\n\n      void main() {\n        vec2 p = gl_FragCoord.xy / resolution.xy;\n        gl_FragColor = texture2D(to, p);\n      }\n    ",
@@ -26564,7 +26576,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	};
 	
-	module.exports = transitions;
+	exports.default = transitions;
 
 /***/ }
 /******/ ])

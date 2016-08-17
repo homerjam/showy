@@ -14,7 +14,7 @@ GlslTransitions.forEach(function (transition) {
   };
 });
 
-console.log(glslTransitions);
+console.log('glslTransitions', glslTransitions);
 
 var config = {
   container: document.querySelector('.container'),
@@ -189,7 +189,9 @@ var config = {
 
 console.log(config);
 
-var showy = new (Showy.default || Showy)(config);
+// console.log(Showy);
+
+var showy = new Showy(config);
 
 console.log(showy);
 

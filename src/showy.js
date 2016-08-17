@@ -11,8 +11,6 @@
  * - fallback for no-webgl (use gsap?)
  */
 
-import transitions from './transitions';
-
 const TRANSITION_FORWARDS = 'forwards';
 const TRANSITION_BACKWARDS = 'backwards';
 const TRANSITION_RANDOM = 'random';
@@ -45,7 +43,7 @@ class Showy {
       slides: [],
       autoplay: false,
       slideDuration: 3000,
-      transitions,
+      transitions: Showy.DefaultTransitions,
       transition: {
         name: 'random',
         duration: 2000,
