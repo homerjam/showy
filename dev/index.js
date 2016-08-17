@@ -18,7 +18,7 @@ console.log('glslTransitions', glslTransitions);
 
 var config = {
   container: document.querySelector('.container'),
-  // autoplay: true,
+  autoplay: true,
   slideDuration: 2000,
   transitions: glslTransitions,
   transition: {
@@ -187,7 +187,7 @@ var config = {
   ],
 };
 
-console.log(config);
+console.log('config', config);
 
 // console.log(Showy);
 
