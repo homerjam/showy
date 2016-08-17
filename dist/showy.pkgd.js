@@ -715,6 +715,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var image = new Image();
 	      image.crossOrigin = 'Anonymous';
 	      image.src = imageUrl;
+	      image.onerror = function (event) {
+	        _this4.destroy();
+	
+	        throw new Error('Image failed to load', imageUrl);
+	      };
 	      image.onload = function (event) {
 	        _this4._imageMap[imageUrl] = image;
 	        callback(image);
@@ -26483,9 +26488,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	"use strict";
 	
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
 	var transitions = {
 	  none: {
 	    shader: "\n      #ifdef GL_ES\n      precision highp float;\n      #endif\n      uniform sampler2D from, to;\n      uniform float progress;\n      uniform vec2 resolution;\n\n      void main() {\n        vec2 p = gl_FragCoord.xy / resolution.xy;\n        gl_FragColor = texture2D(to, p);\n      }\n    ",
@@ -26562,7 +26564,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	};
 	
-	exports.default = transitions;
+	module.exports = transitions;
 
 /***/ }
 /******/ ])

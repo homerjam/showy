@@ -1,4 +1,4 @@
-var transitions = {
+const transitions = {
   none: {
     shader: `
       #ifdef GL_ES

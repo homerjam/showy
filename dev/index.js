@@ -22,6 +22,7 @@ var config = {
   slideDuration: 2000,
   transitions: glslTransitions,
   transition: {
+    // name: 'circle',
     name: 'dreamy',
     duration: 2000,
     ease: 'linear',

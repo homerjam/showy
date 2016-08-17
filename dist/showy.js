@@ -665,6 +665,11 @@ var Showy = function () {
       var image = new Image();
       image.crossOrigin = 'Anonymous';
       image.src = imageUrl;
+      image.onerror = function (event) {
+        _this4.destroy();
+
+        throw new Error('Image failed to load', imageUrl);
+      };
       image.onload = function (event) {
         _this4._imageMap[imageUrl] = image;
         callback(image);
@@ -926,9 +931,6 @@ exports.default = Showy;
 },{"./transitions":3}],3:[function(require,module,exports){
 "use strict";
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
 var transitions = {
   none: {
     shader: "\n      #ifdef GL_ES\n      precision highp float;\n      #endif\n      uniform sampler2D from, to;\n      uniform float progress;\n      uniform vec2 resolution;\n\n      void main() {\n        vec2 p = gl_FragCoord.xy / resolution.xy;\n        gl_FragColor = texture2D(to, p);\n      }\n    ",
@@ -1005,7 +1007,7 @@ var transitions = {
   }
 };
 
-exports.default = transitions;
+module.exports = transitions;
 
 },{}]},{},[1])
 //# sourceMappingURL=showy.js.map
