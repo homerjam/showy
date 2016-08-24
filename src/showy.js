@@ -30,11 +30,13 @@ const TRANSITION_NONE_SHADER = `
 `;
 
 // Polyfill playing status
-Object.defineProperty(HTMLMediaElement.prototype, 'playing', {
-  get: function () {
-    return !!(this.currentTime > 0 && !this.paused && !this.ended && this.readyState > 2);
-  },
-});
+if (window.HTMLMediaElement) {
+  Object.defineProperty(HTMLMediaElement.prototype, 'playing', {
+    get: function () {
+      return !!(this.currentTime > 0 && !this.paused && !this.ended && this.readyState > 2);
+    },
+  });
+}
 
 class Showy {
   constructor(config) {
