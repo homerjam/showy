@@ -99,11 +99,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	var TRANSITION_NONE_SHADER = '\n  #ifdef GL_ES\n  precision highp float;\n  #endif\n  uniform sampler2D from, to;\n  uniform float progress;\n  uniform vec2 resolution;\n\n  void main() {\n    vec2 p = gl_FragCoord.xy / resolution.xy;\n    gl_FragColor = texture2D(to, p);\n  }\n';
 	
 	// Polyfill playing status
-	Object.defineProperty(HTMLMediaElement.prototype, 'playing', {
-	  get: function get() {
-	    return !!(this.currentTime > 0 && !this.paused && !this.ended && this.readyState > 2);
-	  }
-	});
+	if (window.HTMLMediaElement) {
+	  Object.defineProperty(HTMLMediaElement.prototype, 'playing', {
+	    get: function get() {
+	      return !!(this.currentTime > 0 && !this.paused && !this.ended && this.readyState > 2);
+	    }
+	  });
+	}
 	
 	var Showy = function () {
 	  function Showy(config) {
@@ -148,6 +150,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this._ready = false;
 	    this._destroyed = false;
 	    this._playing = this.config.autoplay;
+	    this._width = 0;
+	    this._height = 0;
 	
 	    this._createCanvases();
 	
@@ -309,7 +313,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	        window.requestAnimationFrame(this._animate.bind(this));
 	      } catch (error) {
-	        console.error(error.stack);
+	        console.error(error);
 	      }
 	
 	      this._lastFrameTime = frameTime;
@@ -346,8 +350,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: '_resizeCanvas',
 	    value: function _resizeCanvas(canvas) {
 	      this._scale = window.devicePixelRatio;
-	      canvas.width = this.container.clientWidth * this._scale;
-	      canvas.height = this.container.clientHeight * this._scale;
+	      this._width = this.container.clientWidth * this._scale;
+	      this._height = this.container.clientHeight * this._scale;
+	      canvas.width = this._width;
+	      canvas.height = this._height;
 	    }
 	  }, {
 	    key: 'resize',
@@ -365,7 +371,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, {
 	    key: '_clearContext',
 	    value: function _clearContext(context) {
-	      context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+	      context.clearRect(0, 0, this._width, this._height);
 	    }
 	  }, {
 	    key: '_transitionInProgress',
@@ -533,7 +539,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      if (slide.background) {
 	        context.fillStyle = slide.background;
-	        context.fillRect(0, 0, context.canvas.width, context.canvas.height);
+	        context.fillRect(0, 0, this._width, this._height);
 	      }
 	
 	      if (slide.content.length) {
@@ -580,7 +586,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      position.forEach(function (val, index) {
 	        var pixel = void 0;
 	
-	        var length = [_this3._currentCanvas.width, _this3._currentCanvas.height, _this3._currentCanvas.width, _this3._currentCanvas.height][index];
+	        var length = [_this3._width, _this3._height, _this3._width, _this3._height][index];
 	
 	        length /= scale;
 	
@@ -767,9 +773,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	
 	        if (buffer.length) {
-	          var resizedImageData = new ImageData(new Uint8ClampedArray(buffer), dst.width, dst.height);
+	          _this5._resizedImageData = new ImageData(new Uint8ClampedArray(buffer), dst.width, dst.height);
 	
-	          _this5._slideContentMap[resizedImageKey] = resizedImageData;
+	          _this5._slideContentMap[resizedImageKey] = _this5._resizedImageData;
 	
 	          callback(_this5._slideContentMap[resizedImageKey]);
 	
@@ -864,6 +870,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var _source = document.createElement('source');
 	        _source.src = source.url;
 	        _source.type = source.type;
+	        _source.crossOrigin = 'anonymous';
 	        video.appendChild(_source);
 	      });
 	

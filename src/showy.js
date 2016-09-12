@@ -79,6 +79,8 @@ class Showy {
     this._ready = false;
     this._destroyed = false;
     this._playing = this.config.autoplay;
+    this._width = 0;
+    this._height = 0;
 
     this._createCanvases();
 
@@ -227,7 +229,7 @@ class Showy {
       window.requestAnimationFrame(this._animate.bind(this));
 
     } catch (error) {
-      console.error(error.stack);
+      console.error(error);
     }
 
     this._lastFrameTime = frameTime;
@@ -261,8 +263,10 @@ class Showy {
 
   _resizeCanvas(canvas) {
     this._scale = window.devicePixelRatio;
-    canvas.width = this.container.clientWidth * this._scale;
-    canvas.height = this.container.clientHeight * this._scale;
+    this._width = this.container.clientWidth * this._scale;
+    this._height = this.container.clientHeight * this._scale;
+    canvas.width = this._width;
+    canvas.height = this._height;
   }
 
   resize() {
@@ -278,7 +282,7 @@ class Showy {
   }
 
   _clearContext(context) {
-    context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+    context.clearRect(0, 0, this._width, this._height);
   }
 
   _transitionInProgress() {
@@ -445,7 +449,7 @@ class Showy {
 
     if (slide.background) {
       context.fillStyle = slide.background;
-      context.fillRect(0, 0, context.canvas.width, context.canvas.height);
+      context.fillRect(0, 0, this._width, this._height);
     }
 
     if (slide.content.length) {
@@ -486,7 +490,7 @@ class Showy {
     position.forEach((val, index) => {
       let pixel;
 
-      let length = [this._currentCanvas.width, this._currentCanvas.height, this._currentCanvas.width, this._currentCanvas.height][index];
+      let length = [this._width, this._height, this._width, this._height][index];
 
       length /= scale;
 
@@ -664,9 +668,9 @@ class Showy {
       }
 
       if (buffer.length) {
-        const resizedImageData = new ImageData(new Uint8ClampedArray(buffer), dst.width, dst.height);
+        this._resizedImageData = new ImageData(new Uint8ClampedArray(buffer), dst.width, dst.height);
 
-        this._slideContentMap[resizedImageKey] = resizedImageData;
+        this._slideContentMap[resizedImageKey] = this._resizedImageData;
 
         callback(this._slideContentMap[resizedImageKey]);
 
@@ -746,6 +750,7 @@ class Showy {
       const _source = document.createElement('source');
       _source.src = source.url;
       _source.type = source.type;
+      _source.crossOrigin = 'anonymous';
       video.appendChild(_source);
     });
 
