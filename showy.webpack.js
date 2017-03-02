@@ -1,9 +1,9 @@
-require('expose?pica!pica/dist/pica');
-require('expose?createTexture!gl-texture2d');
-require('expose?createTransition!glsl-transition');
-require('expose?eases!eases');
+require('expose-loader?pica!pica/dist/pica');
+require('expose-loader?createTexture!gl-texture2d');
+require('expose-loader?createTransition!glsl-transition');
+require('expose-loader?eases!eases');
 
-var Showy = require('babel?presets[]=es2015!./src/showy').default;
-Showy.DefaultTransitions = require('babel?presets[]=es2015!./src/transitions').default;
+var Showy = require('babel-loader?presets[]=es2015!./src/showy').default;
+Showy.DefaultTransitions = require('babel-loader?presets[]=es2015!./src/transitions').default;
 
 module.exports = Showy;
