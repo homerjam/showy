@@ -1,4 +1,3 @@
-require('expose-loader?pica!pica/dist/pica');
 require('expose-loader?createTexture!gl-texture2d');
 require('expose-loader?createTransition!glsl-transition');
 require('expose-loader?eases!eases');

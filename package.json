@@ -22,24 +22,25 @@
   "license": "MIT",
   "dependencies": {
     "eases": "^1.0.8",
-    "gl-texture2d": "^2.0.10",
+    "gl-texture2d": "^2.1.0",
     "glsl-transition": "^1.0.2",
-    "glsl-transitions": "^2016.6.3",
-    "lodash": "^4.13.1",
-    "pica": "^2.0.3"
+    "glsl-transitions": "^2017.4.19",
+    "lodash": "^4.17.4",
+    "pica": "^4.0.1"
   },
   "devDependencies": {
-    "babel": "^6.5.2",
-    "babel-loader": "^6.2.4",
-    "babel-polyfill": "^6.9.1",
-    "babel-preset-es2015": "^6.9.0",
-    "babelify": "^7.3.0",
-    "browserify": "^13.0.1",
-    "exorcist": "^0.4.0",
-    "expose-loader": "^0.7.1",
-    "uglifyjs": "^2.4.10",
-    "watchify": "^3.7.0",
-    "webpack": "^1.13.1",
-    "webpack-dev-server": "^1.14.1"
+    "babel": "^6.23.0",
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.2",
+    "babel-polyfill": "^6.26.0",
+    "babel-preset-es2015": "^6.24.1",
+    "babelify": "^8.0.0",
+    "browserify": "^14.5.0",
+    "exorcist": "^1.0.0",
+    "expose-loader": "^0.7.4",
+    "uglifyjs": "^2.4.11",
+    "watchify": "^3.9.0",
+    "webpack": "^3.9.1",
+    "webpack-dev-server": "^2.9.5"
   }
 }

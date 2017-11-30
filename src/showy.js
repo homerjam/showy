@@ -1,3 +1,5 @@
+/* eslint-env browser  */
+
 /**
  * TODO
  * - autoplay: wait for slide._loaded
@@ -10,6 +12,10 @@
  * - effects/filters (sepia / grayscale etc)
  * - fallback for no-webgl (use gsap?)
  */
+
+import Pica from 'pica';
+
+const pica = Pica();
 
 const TRANSITION_FORWARDS = 'forwards';
 const TRANSITION_BACKWARDS = 'backwards';
@@ -32,7 +38,7 @@ const TRANSITION_NONE_SHADER = `
 // Polyfill playing status
 if (window.HTMLMediaElement) {
   Object.defineProperty(HTMLMediaElement.prototype, 'playing', {
-    get: function () {
+    get () {
       return !!(this.currentTime > 0 && !this.paused && !this.ended && this.readyState > 2);
     },
   });
@@ -70,7 +76,8 @@ class Showy {
     this.container.style.height = '100%';
 
     this._slides = this.config.slides;
-    this._currentSlideIndex = this._transitionToIndex = 0;
+    this._currentSlideIndex = 0;
+    this._transitionToIndex = 0;
     this._currentSlideRendered = false;
     this._transitionProgress = 0;
     this._imageMap = {};
@@ -151,14 +158,14 @@ class Showy {
 
     window.removeEventListener('resize', this._resizeHandler);
 
-    _.forEach(this._videoMap, video => {
+    _.forEach(this._videoMap, (video) => {
       this.container.removeChild(video);
       video = null;
     });
     this._videoMap = null;
   }
 
-  _transitionEnded() {
+  static _transitionEnded() {
     // console.log('Transition Ended');
   }
 
@@ -178,7 +185,7 @@ class Showy {
     }
   }
 
-  _slideLoaded(slide, slideIndex) {
+  static _slideLoaded(slide, slideIndex) {
     // console.log('Slide Loaded');
   }
 
@@ -435,7 +442,7 @@ class Showy {
 
       this._pauseSlideContent();
 
-      this._transitionEnded();
+      Showy._transitionEnded();
     }
   }
 
@@ -465,7 +472,7 @@ class Showy {
 
       if (!slide._loaded) {
         slide._loaded = true;
-        this._slideLoaded(slide, this._slides.indexOf(slide));
+        Showy._slideLoaded(slide, this._slides.indexOf(slide));
       }
       return;
     }
@@ -500,12 +507,10 @@ class Showy {
         } else {
           pixel = (val * length) - _pixels[index - 2];
         }
+      } else if (index < 2) {
+        pixel = val;
       } else {
-        if (index < 2) {
-          pixel = val;
-        } else {
-          pixel = length - _pixels[index - 2] - Math.abs(val);
-        }
+        pixel = length - _pixels[index - 2] - Math.abs(val);
       }
 
       _pixels.push(pixel);
@@ -521,7 +526,7 @@ class Showy {
     return pixels;
   }
 
-  _updateCoords(src, dst, scaleMode) {
+  static _updateCoords(src, dst, scaleMode) {
     const srcRatio = src.width / src.height;
     const dstRatio = dst.width / dst.height;
 
@@ -552,7 +557,7 @@ class Showy {
     // Round properties for pica (and general speed up)
     const roundProps = ['x', 'y', 'width', 'height'];
 
-    roundProps.forEach(prop => {
+    roundProps.forEach((prop) => {
       src[prop] = Math.round(src[prop]);
       dst[prop] = Math.round(dst[prop]);
     });
@@ -563,7 +568,7 @@ class Showy {
     };
   }
 
-  _getTile(dst, size) {
+  static _getTile(dst, size) {
     return {
       x: dst.x,
       y: dst.y,
@@ -572,7 +577,7 @@ class Showy {
     };
   }
 
-  _drawTiles(dst, tile, scaleMode, callback) {
+  static _drawTiles(dst, tile, scaleMode, callback) {
     let rows;
     let columns;
 
@@ -610,7 +615,7 @@ class Showy {
     }
   }
 
-  _getImageData(image, x, y, width, height) {
+  static _getImageData(image, x, y, width, height) {
     const tempCanvas = document.createElement('canvas');
     tempCanvas.width = image.naturalWidth;
     tempCanvas.height = image.naturalHeight;
@@ -628,12 +633,12 @@ class Showy {
     const image = new Image();
     image.crossOrigin = 'Anonymous';
     image.src = imageUrl;
-    image.onerror = event => {
+    image.onerror = (event) => {
       this.destroy();
 
       throw new Error('Image failed to load', imageUrl);
     };
-    image.onload = event => {
+    image.onload = (event) => {
       this._imageMap[imageUrl] = image;
       callback(image);
     };
@@ -651,7 +656,7 @@ class Showy {
     }
 
     pica.resizeBuffer({
-      src: this._getImageData(image, src.x, src.y, src.width, src.height),
+      src: Showy._getImageData(image, src.x, src.y, src.width, src.height),
       width: src.width,
       height: src.height,
       toWidth: dst.width,
@@ -661,28 +666,26 @@ class Showy {
       unsharpAmount: 0,
       unsharpRadius: 0.5,
       unsharpThreshold: 0,
-    }, (error, buffer) => {
-      if (error) {
+    })
+      .then((buffer) => {
+        if (buffer.length) {
+          this._resizedImageData = new ImageData(new Uint8ClampedArray(buffer), dst.width, dst.height);
+
+          this._slideContentMap[resizedImageKey] = this._resizedImageData;
+
+          callback(this._slideContentMap[resizedImageKey]);
+
+          return;
+        }
+
+        console.error(new Error('Resize failed'), image.src, src, dst);
+      }, (error) => {
         console.error(error);
-        return;
-      }
-
-      if (buffer.length) {
-        this._resizedImageData = new ImageData(new Uint8ClampedArray(buffer), dst.width, dst.height);
-
-        this._slideContentMap[resizedImageKey] = this._resizedImageData;
-
-        callback(this._slideContentMap[resizedImageKey]);
-
-        return;
-      }
-
-      console.error(new Error('Resize failed'), image.src, src, dst);
-    });
+      });
   }
 
   _drawImage(context, object, callback) {
-    this._getImage(object.url, image => {
+    this._getImage(object.url, (image) => {
       let src = {
         x: 0,
         y: 0,
@@ -693,13 +696,13 @@ class Showy {
       let dst = this._position2Pixels(object.position, this._scale);
 
       if (object.tile) {
-        let tile = this._getTile(dst, object.tile.size);
+        let tile = Showy._getTile(dst, object.tile.size);
 
-        const updatedCoords = this._updateCoords(src, tile, object.tile.scaleMode);
+        const updatedCoords = Showy._updateCoords(src, tile, object.tile.scaleMode);
 
-        this._resizeImage(image, updatedCoords.src, updatedCoords.dst, resizedImageData => {
+        this._resizeImage(image, updatedCoords.src, updatedCoords.dst, (resizedImageData) => {
 
-          this._drawTiles(dst, updatedCoords.dst, object.scaleMode, tileCoord => {
+          Showy._drawTiles(dst, updatedCoords.dst, object.scaleMode, (tileCoord) => {
             context.putImageData(resizedImageData, tileCoord.x, tileCoord.y);
           });
 
@@ -709,12 +712,12 @@ class Showy {
         return;
       }
 
-      const updatedCoords = this._updateCoords(src, dst, object.scaleMode);
+      const updatedCoords = Showy._updateCoords(src, dst, object.scaleMode);
 
       src = updatedCoords.src;
       dst = updatedCoords.dst;
 
-      this._resizeImage(image, src, dst, resizedImageData => {
+      this._resizeImage(image, src, dst, (resizedImageData) => {
         context.putImageData(resizedImageData, dst.x, dst.y);
 
         callback();
@@ -722,7 +725,7 @@ class Showy {
     });
   }
 
-  _getVideoData(video) {
+  static _getVideoData(video) {
     const tempCanvas = document.createElement('canvas');
     tempCanvas.width = video.videoWidth;
     tempCanvas.height = video.videoHeight;
@@ -746,7 +749,7 @@ class Showy {
     video.muted = true;
     this.container.appendChild(video);
 
-    object.sources.forEach(source => {
+    object.sources.forEach((source) => {
       const _source = document.createElement('source');
       _source.src = source.url;
       _source.type = source.type;
@@ -774,7 +777,7 @@ class Showy {
   }
 
   _drawVideo(context, object, callback) {
-    this._getVideo(object, video => {
+    this._getVideo(object, (video) => {
       if (video.videoWidth === 0 || video.videoHeight === 0) {
         return;
       }
@@ -789,11 +792,11 @@ class Showy {
       let dst = this._position2Pixels(object.position, this._scale);
 
       if (object.tile) {
-        let tile = this._getTile(dst, object.tile.size);
+        let tile = Showy._getTile(dst, object.tile.size);
 
-        const updatedCoords = this._updateCoords(src, tile, object.tile.scaleMode);
+        const updatedCoords = Showy._updateCoords(src, tile, object.tile.scaleMode);
 
-        this._drawTiles(dst, updatedCoords.dst, object.scaleMode, tileCoord => {
+        Showy._drawTiles(dst, updatedCoords.dst, object.scaleMode, (tileCoord) => {
           context.drawImage(video, src.x, src.y, src.width, src.height, tileCoord.x, tileCoord.y, tile.width, tile.height);
         });
 
@@ -802,7 +805,7 @@ class Showy {
         return;
       }
 
-      const updatedCoords = this._updateCoords(src, dst, object.scaleMode);
+      const updatedCoords = Showy._updateCoords(src, dst, object.scaleMode);
 
       src = updatedCoords.src;
       dst = updatedCoords.dst;
@@ -814,9 +817,9 @@ class Showy {
   }
 
   _playSlideContent(index) {
-    this._slides[index].content.forEach(object => {
+    this._slides[index].content.forEach((object) => {
       if (object.type === 'video') {
-        this._getVideo(object, video => {
+        this._getVideo(object, (video) => {
           video._playCount = 0;
           video.currentTime = 0;
           video.play();
@@ -828,7 +831,7 @@ class Showy {
   _pauseSlideContent() {
     const currentSlideVideos = [];
 
-    this._slides[this._currentSlideIndex].content.forEach(object => {
+    this._slides[this._currentSlideIndex].content.forEach((object) => {
       if (object.type === 'video') {
         currentSlideVideos.push(this._getVideo(object));
       }
@@ -839,9 +842,9 @@ class Showy {
         return;
       }
 
-      slide.content.forEach(object => {
+      slide.content.forEach((object) => {
         if (object.type === 'video') {
-          this._getVideo(object, video => {
+          this._getVideo(object, (video) => {
             if (currentSlideVideos.indexOf(video) === -1) {
               video._playCount = 0;
               video.currentTime = 0;

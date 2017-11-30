@@ -16,6 +16,8 @@
     "operator-assignment": 0,
     "no-undef": 1,
     "object-shorthand": 1,
-    "no-lonely-if": 1
+    "no-lonely-if": 1,
+    "prefer-destructuring": 1,
+    "no-plusplus": 1
   }
 }
