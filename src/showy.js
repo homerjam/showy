@@ -14,6 +14,10 @@
  */
 
 import Pica from 'pica';
+import createTexture from 'gl-texture2d';
+import createTransition from 'glsl-transition';
+import eases from 'eases';
+import transitions from './transitions';
 
 const pica = Pica();
 
@@ -51,7 +55,7 @@ class Showy {
       slides: [],
       autoplay: false,
       slideDuration: 3000,
-      transitions: Showy.DefaultTransitions,
+      transitions,
       transition: {
         name: 'random',
         duration: 2000,
@@ -88,6 +92,10 @@ class Showy {
     this._playing = this.config.autoplay;
     this._width = 0;
     this._height = 0;
+    this._regExp = {
+      image: /\.(jpe?g|webp|png)$/i,
+      video: /\.(mp4|webm|ogg)$/i,
+    };
 
     this._createCanvases();
 
@@ -165,7 +173,114 @@ class Showy {
     this._videoMap = null;
   }
 
-  static _transitionEnded() {
+  static _updateCoords(src, dst, scaleMode) {
+    const srcRatio = src.width / src.height;
+    const dstRatio = dst.width / dst.height;
+
+    if (scaleMode && scaleMode === 'fill') {
+      if (srcRatio < dstRatio) {
+        const newHeight = dst.height * (src.width / dst.width);
+        src.y = src.y + ((src.height - newHeight) * 0.5);
+        src.height = newHeight;
+      }
+      if (srcRatio > dstRatio) {
+        const newWidth = dst.width * (src.height / dst.height);
+        src.x = src.x + ((src.width - newWidth) * 0.5);
+        src.width = newWidth;
+      }
+    } else {
+      if (srcRatio > dstRatio) {
+        const newHeight = dst.width * (src.height / src.width);
+        dst.y = dst.y + ((dst.height - newHeight) * 0.5);
+        dst.height = newHeight;
+      }
+      if (srcRatio < dstRatio) {
+        const newWidth = dst.height * srcRatio;
+        dst.x = dst.x + ((dst.width - newWidth) * 0.5);
+        dst.width = newWidth;
+      }
+    }
+
+    // Round properties for pica (and general speed up)
+    const roundProps = ['x', 'y', 'width', 'height'];
+
+    roundProps.forEach((prop) => {
+      src[prop] = Math.round(src[prop]);
+      dst[prop] = Math.round(dst[prop]);
+    });
+
+    return {
+      src,
+      dst,
+    };
+  }
+
+  static _getTile(dst, size) {
+    return {
+      x: dst.x,
+      y: dst.y,
+      width: size[0] <= 1 ? dst.width * size[0] : size[0],
+      height: size[1] <= 1 ? dst.height * size[1] : size[1],
+    };
+  }
+
+  static _drawTiles(dst, tile, scaleMode, callback) {
+    let rows;
+    let columns;
+
+    let offsetWidth = 0;
+    let offsetHeight = 0;
+
+    if (scaleMode && scaleMode === 'fill') {
+      rows = Math.ceil(dst.height / tile.height);
+      columns = Math.ceil(dst.width / tile.width);
+
+      offsetWidth = ((tile.width * columns) - dst.width) * 0.5;
+      offsetHeight = ((tile.height * rows) - dst.height) * 0.5;
+
+    } else {
+      rows = Math.floor(dst.height / tile.height);
+      columns = Math.floor(dst.width / tile.width);
+    }
+
+    let row = 0;
+    let column = 0;
+
+    const totalTiles = rows * columns;
+
+    for (let i = 0; i < totalTiles; i++) {
+      callback({
+        x: (tile.x + (column * tile.width)) - offsetWidth,
+        y: (tile.y + (row * tile.height)) - offsetHeight,
+      });
+
+      if (column === columns - 1) {
+        row++;
+      }
+
+      column = column < columns - 1 ? column + 1 : 0;
+    }
+  }
+
+  static _getImageData(image, x, y, width, height) {
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = image.naturalWidth;
+    tempCanvas.height = image.naturalHeight;
+    const tempContext = tempCanvas.getContext('2d');
+    tempContext.drawImage(image, 0, 0, image.naturalWidth, image.naturalHeight);
+    return tempContext.getImageData(x, y, width, height).data;
+  }
+
+  static _getVideoData(video) {
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = video.videoWidth;
+    tempCanvas.height = video.videoHeight;
+    const tempContext = tempCanvas.getContext('2d');
+    tempContext.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
+    return tempContext._getImageData(0, 0, video.videoWidth, video.videoHeight).data;
+  }
+
+  _transitionEnded() {
     // console.log('Transition Ended');
   }
 
@@ -178,14 +293,14 @@ class Showy {
       if (slide.duration && _.isFunction(slide.duration)) {
         let object = slide.duration();
 
-        if (object.type === 'video') {
+        if (this._isType(object, 'video')) {
           this.nextSlide();
         }
       }
     }
   }
 
-  static _slideLoaded(slide, slideIndex) {
+  _slideLoaded(slide, slideIndex) {
     // console.log('Slide Loaded');
   }
 
@@ -207,7 +322,7 @@ class Showy {
         if (_.isFunction(slide.duration)) {
           let object = slide.duration();
 
-          if (object.type === 'video') {
+          if (this._isType(object, 'video')) {
             return;
           }
         }
@@ -442,12 +557,16 @@ class Showy {
 
       this._pauseSlideContent();
 
-      Showy._transitionEnded();
+      this._transitionEnded();
     }
   }
 
+  _isType(object, type) {
+    return object.type === type || object[type] || this._regExp[type].test(object.url);
+  }
+
   _drawSlide(context, slide) {
-    slide._hasVideo = slide.content.filter(object => object.type === 'video').length > 0;
+    slide._hasVideo = slide.content.filter(object => this._isType(object, 'video')).length > 0;
     slide._rendered = false;
     slide._ready = false;
     if (!slide._loaded) {
@@ -472,23 +591,29 @@ class Showy {
 
       if (!slide._loaded) {
         slide._loaded = true;
-        Showy._slideLoaded(slide, this._slides.indexOf(slide));
+        this._slideLoaded(slide, this._slides.indexOf(slide));
       }
       return;
     }
 
     const callback = this._drawSlideContent.bind(this, context, slide, index + 1);
 
-    switch (object.type) {
-      case 'image':
-        this._drawImage(context, object, callback);
-        break;
-      case 'video':
-        this._drawVideo(context, object, callback);
-        break;
-      default:
-        throw new Error('Unknown content type');
+    if (this._isType(object, 'image')) {
+      this._drawImage(context, object, callback);
+      return;
     }
+
+    if (this._isType(object, 'video')) {
+      this._drawVideo(context, object, callback);
+      return;
+    }
+
+    if (this._isType(object, 'text')) {
+      this._drawText(context, object, callback);
+      return;
+    }
+
+    throw new Error('Unknown content type');
   }
 
   _position2Pixels(position, scale = 1) {
@@ -526,120 +651,24 @@ class Showy {
     return pixels;
   }
 
-  static _updateCoords(src, dst, scaleMode) {
-    const srcRatio = src.width / src.height;
-    const dstRatio = dst.width / dst.height;
+  _getImage(object, callback) {
+    const url = typeof object.url === 'function' ? object.url() : object.url;
 
-    if (scaleMode && scaleMode === 'fill') {
-      if (srcRatio < dstRatio) {
-        const newHeight = dst.height * (src.width / dst.width);
-        src.y = src.y + ((src.height - newHeight) * 0.5);
-        src.height = newHeight;
-      }
-      if (srcRatio > dstRatio) {
-        const newWidth = dst.width * (src.height / dst.height);
-        src.x = src.x + ((src.width - newWidth) * 0.5);
-        src.width = newWidth;
-      }
-    } else {
-      if (srcRatio > dstRatio) {
-        const newHeight = dst.width * (src.height / src.width);
-        dst.y = dst.y + ((dst.height - newHeight) * 0.5);
-        dst.height = newHeight;
-      }
-      if (srcRatio < dstRatio) {
-        const newWidth = dst.height * srcRatio;
-        dst.x = dst.x + ((dst.width - newWidth) * 0.5);
-        dst.width = newWidth;
-      }
-    }
-
-    // Round properties for pica (and general speed up)
-    const roundProps = ['x', 'y', 'width', 'height'];
-
-    roundProps.forEach((prop) => {
-      src[prop] = Math.round(src[prop]);
-      dst[prop] = Math.round(dst[prop]);
-    });
-
-    return {
-      src,
-      dst,
-    };
-  }
-
-  static _getTile(dst, size) {
-    return {
-      x: dst.x,
-      y: dst.y,
-      width: size[0] <= 1 ? dst.width * size[0] : size[0],
-      height: size[1] <= 1 ? dst.height * size[1] : size[1],
-    };
-  }
-
-  static _drawTiles(dst, tile, scaleMode, callback) {
-    let rows;
-    let columns;
-
-    let offsetWidth = 0;
-    let offsetHeight = 0;
-
-    if (scaleMode && scaleMode === 'fill') {
-      rows = Math.ceil(dst.height / tile.height);
-      columns = Math.ceil(dst.width / tile.width);
-
-      offsetWidth = ((tile.width * columns) - dst.width) * 0.5;
-      offsetHeight = ((tile.height * rows) - dst.height) * 0.5;
-
-    } else {
-      rows = Math.floor(dst.height / tile.height);
-      columns = Math.floor(dst.width / tile.width);
-    }
-
-    let row = 0;
-    let column = 0;
-
-    const totalTiles = rows * columns;
-
-    for (let i = 0; i < totalTiles; i++) {
-      callback({
-        x: (tile.x + (column * tile.width)) - offsetWidth,
-        y: (tile.y + (row * tile.height)) - offsetHeight,
-      });
-
-      if (column === columns - 1) {
-        row++;
-      }
-
-      column = column < columns - 1 ? column + 1 : 0;
-    }
-  }
-
-  static _getImageData(image, x, y, width, height) {
-    const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = image.naturalWidth;
-    tempCanvas.height = image.naturalHeight;
-    const tempContext = tempCanvas.getContext('2d');
-    tempContext.drawImage(image, 0, 0, image.naturalWidth, image.naturalHeight);
-    return tempContext.getImageData(x, y, width, height).data;
-  }
-
-  _getImage(imageUrl, callback) {
-    if (this._imageMap[imageUrl]) {
-      callback(this._imageMap[imageUrl]);
+    if (this._imageMap[url]) {
+      callback(this._imageMap[url]);
       return;
     }
 
     const image = new Image();
     image.crossOrigin = 'Anonymous';
-    image.src = imageUrl;
+    image.src = url;
     image.onerror = (event) => {
       this.destroy();
 
-      throw new Error('Image failed to load', imageUrl);
+      throw new Error('Image failed to load', url);
     };
     image.onload = (event) => {
-      this._imageMap[imageUrl] = image;
+      this._imageMap[url] = image;
       callback(image);
     };
   }
@@ -684,8 +713,22 @@ class Showy {
       });
   }
 
+  _drawText(context, object, callback) {
+    let dst = this._position2Pixels(object.position, this._scale);
+
+    context.font = object.font || '72px sans-serif';
+    context.textAlign = object.align || 'center';
+    context.fillStyle = object.color || 'rgba(0, 0, 0, 1)';
+
+    let maxWidth = object.maxWidth ? object.maxWidth * this._width : undefined;
+
+    context.fillText(object.text, dst.x, dst.y, maxWidth);
+
+    callback();
+  }
+
   _drawImage(context, object, callback) {
-    this._getImage(object.url, (image) => {
+    this._getImage(object, (image) => {
       let src = {
         x: 0,
         y: 0,
@@ -725,17 +768,11 @@ class Showy {
     });
   }
 
-  static _getVideoData(video) {
-    const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = video.videoWidth;
-    tempCanvas.height = video.videoHeight;
-    const tempContext = tempCanvas.getContext('2d');
-    tempContext.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
-    return tempContext._getImageData(0, 0, video.videoWidth, video.videoHeight).data;
-  }
-
   _getVideo(object, callback = () => {}) {
-    const videoKey = JSON.stringify(object.sources);
+    const url = typeof object.url === 'function' ? object.url() : object.url;
+    const sources = typeof object.sources === 'function' ? object.sources() : object.sources;
+
+    const videoKey = JSON.stringify(url || sources);
 
     if (this._videoMap[videoKey]) {
       callback(this._videoMap[videoKey]);
@@ -749,13 +786,21 @@ class Showy {
     video.muted = true;
     this.container.appendChild(video);
 
-    object.sources.forEach((source) => {
-      const _source = document.createElement('source');
-      _source.src = source.url;
-      _source.type = source.type;
-      _source.crossOrigin = 'anonymous';
-      video.appendChild(_source);
-    });
+    if (url) {
+      video.src = url;
+    }
+
+    if (sources) {
+      sources.forEach((source) => {
+        const _source = document.createElement('source');
+        _source.src = source.url;
+        if (source.type) {
+          _source.type = source.type;
+        }
+        _source.crossOrigin = 'anonymous';
+        video.appendChild(_source);
+      });
+    }
 
     this._videoMap[videoKey] = video;
 
@@ -818,7 +863,7 @@ class Showy {
 
   _playSlideContent(index) {
     this._slides[index].content.forEach((object) => {
-      if (object.type === 'video') {
+      if (this._isType(object, 'video')) {
         this._getVideo(object, (video) => {
           video._playCount = 0;
           video.currentTime = 0;
@@ -832,7 +877,7 @@ class Showy {
     const currentSlideVideos = [];
 
     this._slides[this._currentSlideIndex].content.forEach((object) => {
-      if (object.type === 'video') {
+      if (this._isType(object, 'video')) {
         currentSlideVideos.push(this._getVideo(object));
       }
     });
@@ -843,7 +888,7 @@ class Showy {
       }
 
       slide.content.forEach((object) => {
-        if (object.type === 'video') {
+        if (this._isType(object, 'video')) {
           this._getVideo(object, (video) => {
             if (currentSlideVideos.indexOf(video) === -1) {
               video._playCount = 0;
