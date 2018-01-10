@@ -8076,13 +8076,13 @@ var Showy = function () {
 
       var callback = this._drawSlideContent.bind(this, context, slide, index + 1);
 
-      if (this._isType(object, 'image')) {
-        this._drawImage(context, object, callback);
+      if (this._isType(object, 'video')) {
+        this._drawVideo(context, object, callback);
         return;
       }
 
-      if (this._isType(object, 'video')) {
-        this._drawVideo(context, object, callback);
+      if (this._isType(object, 'image')) {
+        this._drawImage(context, object, callback);
         return;
       }
 
@@ -8283,10 +8283,6 @@ var Showy = function () {
       video.muted = true;
       this.container.appendChild(video);
 
-      if (url) {
-        video.src = url;
-      }
-
       if (sources) {
         sources.forEach(function (source) {
           var _source = document.createElement('source');
@@ -8297,6 +8293,12 @@ var Showy = function () {
           _source.crossOrigin = 'anonymous';
           video.appendChild(_source);
         });
+
+        if (url) {
+          video.poster = url;
+        }
+      } else if (url) {
+        video.src = url;
       }
 
       this._videoMap[videoKey] = video;
