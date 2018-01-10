@@ -7476,137 +7476,33 @@ var eases = {
 	'sineOut': sineOut_1
 };
 
-const transitions = {
+var transitions = {
   none: {
-    shader: `
-      #ifdef GL_ES
-      precision highp float;
-      #endif
-      uniform sampler2D from, to;
-      uniform float progress;
-      uniform vec2 resolution;
-
-      void main() {
-        vec2 p = gl_FragCoord.xy / resolution.xy;
-        gl_FragColor = texture2D(to, p);
-      }
-    `,
+    shader: "\n      #ifdef GL_ES\n      precision highp float;\n      #endif\n      uniform sampler2D from, to;\n      uniform float progress;\n      uniform vec2 resolution;\n\n      void main() {\n        vec2 p = gl_FragCoord.xy / resolution.xy;\n        gl_FragColor = texture2D(to, p);\n      }\n    ",
     uniforms: {}
   },
   crossfade: {
-    shader: `
-      #ifdef GL_ES
-      precision highp float;
-      #endif
-      uniform sampler2D from, to;
-      uniform float progress;
-      uniform vec2 resolution;
-
-      void main() {
-        vec2 p = gl_FragCoord.xy / resolution.xy;
-        gl_FragColor = mix(texture2D(from, p), texture2D(to, p), progress);
-      }
-    `,
+    shader: "\n      #ifdef GL_ES\n      precision highp float;\n      #endif\n      uniform sampler2D from, to;\n      uniform float progress;\n      uniform vec2 resolution;\n\n      void main() {\n        vec2 p = gl_FragCoord.xy / resolution.xy;\n        gl_FragColor = mix(texture2D(from, p), texture2D(to, p), progress);\n      }\n    ",
     uniforms: {}
   },
   wipeUp: {
-    shader: `
-      #ifdef GL_ES
-      precision highp float;
-      #endif
-      uniform sampler2D from, to;
-      uniform float progress;
-      uniform vec2 resolution;
-
-      void main() {
-        vec2 p = gl_FragCoord.xy / resolution.xy;
-        vec4 a = texture2D(from, p);
-        vec4 b = texture2D(to, p);
-        gl_FragColor = mix(a, b, step(0.0 + p.y, progress));
-      }
-    `,
+    shader: "\n      #ifdef GL_ES\n      precision highp float;\n      #endif\n      uniform sampler2D from, to;\n      uniform float progress;\n      uniform vec2 resolution;\n\n      void main() {\n        vec2 p = gl_FragCoord.xy / resolution.xy;\n        vec4 a = texture2D(from, p);\n        vec4 b = texture2D(to, p);\n        gl_FragColor = mix(a, b, step(0.0 + p.y, progress));\n      }\n    ",
     uniforms: {}
   },
   wipeDown: {
-    shader: `
-      #ifdef GL_ES
-      precision highp float;
-      #endif
-      uniform sampler2D from, to;
-      uniform float progress;
-      uniform vec2 resolution;
-
-      void main() {
-        vec2 p = gl_FragCoord.xy / resolution.xy;
-        vec4 a = texture2D(from, p);
-        vec4 b = texture2D(to, p);
-        gl_FragColor = mix(a, b, step(1.0 - p.y, progress));
-      }
-    `,
+    shader: "\n      #ifdef GL_ES\n      precision highp float;\n      #endif\n      uniform sampler2D from, to;\n      uniform float progress;\n      uniform vec2 resolution;\n\n      void main() {\n        vec2 p = gl_FragCoord.xy / resolution.xy;\n        vec4 a = texture2D(from, p);\n        vec4 b = texture2D(to, p);\n        gl_FragColor = mix(a, b, step(1.0 - p.y, progress));\n      }\n    ",
     uniforms: {}
   },
   wipeRight: {
-    shader: `
-      #ifdef GL_ES
-      precision highp float;
-      #endif
-      uniform sampler2D from, to;
-      uniform float progress;
-      uniform vec2 resolution;
-
-      void main() {
-        vec2 p = gl_FragCoord.xy / resolution.xy;
-        vec4 a = texture2D(from, p);
-        vec4 b = texture2D(to, p);
-        gl_FragColor = mix(a, b, step(0.0 + p.x, progress));
-      }
-    `,
+    shader: "\n      #ifdef GL_ES\n      precision highp float;\n      #endif\n      uniform sampler2D from, to;\n      uniform float progress;\n      uniform vec2 resolution;\n\n      void main() {\n        vec2 p = gl_FragCoord.xy / resolution.xy;\n        vec4 a = texture2D(from, p);\n        vec4 b = texture2D(to, p);\n        gl_FragColor = mix(a, b, step(0.0 + p.x, progress));\n      }\n    ",
     uniforms: {}
   },
   wipeLeft: {
-    shader: `
-      #ifdef GL_ES
-      precision highp float;
-      #endif
-      uniform sampler2D from, to;
-      uniform float progress;
-      uniform vec2 resolution;
-
-      void main() {
-        vec2 p = gl_FragCoord.xy / resolution.xy;
-        vec4 a = texture2D(from, p);
-        vec4 b = texture2D(to, p);
-        gl_FragColor = mix(a, b, step(1.0 - p.x, progress));
-      }
-    `,
+    shader: "\n      #ifdef GL_ES\n      precision highp float;\n      #endif\n      uniform sampler2D from, to;\n      uniform float progress;\n      uniform vec2 resolution;\n\n      void main() {\n        vec2 p = gl_FragCoord.xy / resolution.xy;\n        vec4 a = texture2D(from, p);\n        vec4 b = texture2D(to, p);\n        gl_FragColor = mix(a, b, step(1.0 - p.x, progress));\n      }\n    ",
     uniforms: {}
   },
   circle: {
-    shader: `
-      #ifdef GL_ES
-      precision highp float;
-      #endif
-
-      uniform sampler2D from, to;
-      uniform float progress;
-      uniform vec2 resolution;
-
-      uniform float centerX;
-      uniform float centerY;
-      uniform float smoothness;
-      uniform bool grow;
-
-      vec2 center = vec2(centerX, 1.0 - centerY);
-      float scale = sqrt(min(resolution[0] / resolution[1], resolution[1] / resolution[0]) / max(centerX, 1.0 - centerY));
-
-      void main() {
-        vec2 p = gl_FragCoord.xy / resolution.xy;
-        float size = grow ? progress : 1.0 - progress;
-        float dist = distance(center, p);
-        float circle = smoothstep(-smoothness, 0.0, scale * dist - size * (1.0 + smoothness));
-        gl_FragColor = mix(texture2D(from, p), texture2D(to, p), grow ? 1.0 - circle : circle);
-      }
-    `,
+    shader: "\n      #ifdef GL_ES\n      precision highp float;\n      #endif\n\n      uniform sampler2D from, to;\n      uniform float progress;\n      uniform vec2 resolution;\n\n      uniform float centerX;\n      uniform float centerY;\n      uniform float smoothness;\n      uniform bool grow;\n\n      vec2 center = vec2(centerX, 1.0 - centerY);\n      float scale = sqrt(min(resolution[0] / resolution[1], resolution[1] / resolution[0]) / max(centerX, 1.0 - centerY));\n\n      void main() {\n        vec2 p = gl_FragCoord.xy / resolution.xy;\n        float size = grow ? progress : 1.0 - progress;\n        float dist = distance(center, p);\n        float circle = smoothstep(-smoothness, 0.0, scale * dist - size * (1.0 + smoothness));\n        gl_FragColor = mix(texture2D(from, p), texture2D(to, p), grow ? 1.0 - circle : circle);\n      }\n    ",
     uniforms: {
       centerX: 0.5,
       centerY: 0.5,
@@ -7615,104 +7511,11 @@ const transitions = {
     }
   },
   circleInOut: {
-    shader: `
-      #ifdef GL_ES
-      precision highp float;
-      #endif
-      uniform sampler2D from, to;
-      uniform float progress;
-      uniform vec2 resolution;
-
-      float maxRadius = resolution.x + resolution.y;
-
-      void main() {
-        vec2 p = gl_FragCoord.xy / resolution.xy;
-
-        float distX = gl_FragCoord.x - resolution.x / 2.0;
-        float distY = gl_FragCoord.y - resolution.y / 2.0;
-        float dist = sqrt(distX * distX + distY * distY);
-
-        float step = 2.0 * abs(progress - 0.5);
-        step = step * step * step;
-
-        if (dist < step * maxRadius)
-        {
-          if (progress < 0.5)
-            gl_FragColor = texture2D(from, p);
-          else
-            gl_FragColor = texture2D(to, p);
-        }
-        else
-          gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
-      }
-    `,
+    shader: "\n      #ifdef GL_ES\n      precision highp float;\n      #endif\n      uniform sampler2D from, to;\n      uniform float progress;\n      uniform vec2 resolution;\n\n      float maxRadius = resolution.x + resolution.y;\n\n      void main() {\n        vec2 p = gl_FragCoord.xy / resolution.xy;\n\n        float distX = gl_FragCoord.x - resolution.x / 2.0;\n        float distY = gl_FragCoord.y - resolution.y / 2.0;\n        float dist = sqrt(distX * distX + distY * distY);\n\n        float step = 2.0 * abs(progress - 0.5);\n        step = step * step * step;\n\n        if (dist < step * maxRadius)\n        {\n          if (progress < 0.5)\n            gl_FragColor = texture2D(from, p);\n          else\n            gl_FragColor = texture2D(to, p);\n        }\n        else\n          gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);\n      }\n    ",
     uniforms: {}
   },
   splitVertical: {
-    shader: `
-      #ifdef GL_ES
-      precision highp float;
-      #endif
-
-      // General parameters
-      uniform sampler2D from;
-      uniform sampler2D to;
-      uniform float progress;
-      uniform vec2 resolution;
-
-      uniform float reflection;
-      uniform float perspective;
-      uniform float depth;
-
-      const vec4 black = vec4(0.0, 0.0, 0.0, 1.0);
-      const vec2 boundMin = vec2(0.0, 0.0);
-      const vec2 boundMax = vec2(1.0, 1.0);
-
-      bool inBounds (vec2 p) {
-        return all(lessThan(boundMin, p)) && all(lessThan(p, boundMax));
-      }
-
-      vec2 project (vec2 p) {
-        return p * vec2(1.0, -1.2) + vec2(0.0, -0.02);
-      }
-
-      vec4 bgColor (vec2 p, vec2 pto) {
-        vec4 c = black;
-        pto = project(pto);
-        if (inBounds(pto)) {
-          c += mix(black, texture2D(to, pto), reflection * mix(1.0, 0.0, pto.y));
-        }
-        return c;
-      }
-
-      void main() {
-        vec2 p = gl_FragCoord.xy / resolution.xy;
-
-        vec2 pfr = vec2(-1.), pto = vec2(-1.);
-
-        float middleSlit = 2.0 * abs(p.x-0.5) - progress;
-        if (middleSlit > 0.0) {
-          pfr = p + (p.x > 0.5 ? -1.0 : 1.0) * vec2(0.5*progress, 0.0);
-          float d = 1.0/(1.0+perspective*progress*(1.0-middleSlit));
-          pfr.y -= d/2.;
-          pfr.y *= d;
-          pfr.y += d/2.;
-        }
-
-        float size = mix(1.0, depth, 1.-progress);
-        pto = (p + vec2(-0.5, -0.5)) * vec2(size, size) + vec2(0.5, 0.5);
-
-        if (inBounds(pfr)) {
-          gl_FragColor = texture2D(from, pfr);
-        }
-        else if (inBounds(pto)) {
-          gl_FragColor = texture2D(to, pto);
-        }
-        else {
-          gl_FragColor = bgColor(p, pto);
-        }
-      }
-    `,
+    shader: "\n      #ifdef GL_ES\n      precision highp float;\n      #endif\n\n      // General parameters\n      uniform sampler2D from;\n      uniform sampler2D to;\n      uniform float progress;\n      uniform vec2 resolution;\n\n      uniform float reflection;\n      uniform float perspective;\n      uniform float depth;\n\n      const vec4 black = vec4(0.0, 0.0, 0.0, 1.0);\n      const vec2 boundMin = vec2(0.0, 0.0);\n      const vec2 boundMax = vec2(1.0, 1.0);\n\n      bool inBounds (vec2 p) {\n        return all(lessThan(boundMin, p)) && all(lessThan(p, boundMax));\n      }\n\n      vec2 project (vec2 p) {\n        return p * vec2(1.0, -1.2) + vec2(0.0, -0.02);\n      }\n\n      vec4 bgColor (vec2 p, vec2 pto) {\n        vec4 c = black;\n        pto = project(pto);\n        if (inBounds(pto)) {\n          c += mix(black, texture2D(to, pto), reflection * mix(1.0, 0.0, pto.y));\n        }\n        return c;\n      }\n\n      void main() {\n        vec2 p = gl_FragCoord.xy / resolution.xy;\n\n        vec2 pfr = vec2(-1.), pto = vec2(-1.);\n\n        float middleSlit = 2.0 * abs(p.x-0.5) - progress;\n        if (middleSlit > 0.0) {\n          pfr = p + (p.x > 0.5 ? -1.0 : 1.0) * vec2(0.5*progress, 0.0);\n          float d = 1.0/(1.0+perspective*progress*(1.0-middleSlit));\n          pfr.y -= d/2.;\n          pfr.y *= d;\n          pfr.y += d/2.;\n        }\n\n        float size = mix(1.0, depth, 1.-progress);\n        pto = (p + vec2(-0.5, -0.5)) * vec2(size, size) + vec2(0.5, 0.5);\n\n        if (inBounds(pfr)) {\n          gl_FragColor = texture2D(from, pfr);\n        }\n        else if (inBounds(pto)) {\n          gl_FragColor = texture2D(to, pto);\n        }\n        else {\n          gl_FragColor = bgColor(p, pto);\n        }\n      }\n    ",
     uniforms: {
       reflection: 0,
       perspective: 0,
@@ -7720,210 +7523,58 @@ const transitions = {
     }
   },
   slideUp: {
-    shader: `
-      #ifdef GL_ES
-      precision highp float;
-      #endif
-      uniform sampler2D from, to;
-      uniform float progress;
-      uniform vec2 resolution;
-
-      uniform float translateX;
-      uniform float translateY;
-
-      void main() {
-          vec2 texCoord = gl_FragCoord.xy / resolution.xy;
-          float x = progress * translateX;
-          float y = progress * translateY;
-
-          if (x >= 0.0 && y >= 0.0) {
-              if (texCoord.x >= x && texCoord.y >= y) {
-                  gl_FragColor = texture2D(from, texCoord - vec2(x, y));
-              }
-              else {
-                  vec2 uv;
-                  if (x > 0.0)
-                      uv = vec2(x - 1.0, y);
-                  else if (y > 0.0)
-                      uv = vec2(x, y - 1.0);
-                  gl_FragColor = texture2D(to, texCoord - uv);
-              }
-          }
-          else if (x <= 0.0 && y <= 0.0) {
-              if (texCoord.x <= (1.0 + x) && texCoord.y <= (1.0 + y))
-                  gl_FragColor = texture2D(from, texCoord - vec2(x, y));
-              else {
-                  vec2 uv;
-                  if (x < 0.0)
-                      uv = vec2(x + 1.0, y);
-                  else if (y < 0.0)
-                      uv = vec2(x, y + 1.0);
-                  gl_FragColor = texture2D(to, texCoord - uv);
-              }
-          }
-          else
-              gl_FragColor = vec4(0.0);
-      }
-    `,
+    shader: "\n      #ifdef GL_ES\n      precision highp float;\n      #endif\n      uniform sampler2D from, to;\n      uniform float progress;\n      uniform vec2 resolution;\n\n      uniform float translateX;\n      uniform float translateY;\n\n      void main() {\n          vec2 texCoord = gl_FragCoord.xy / resolution.xy;\n          float x = progress * translateX;\n          float y = progress * translateY;\n\n          if (x >= 0.0 && y >= 0.0) {\n              if (texCoord.x >= x && texCoord.y >= y) {\n                  gl_FragColor = texture2D(from, texCoord - vec2(x, y));\n              }\n              else {\n                  vec2 uv;\n                  if (x > 0.0)\n                      uv = vec2(x - 1.0, y);\n                  else if (y > 0.0)\n                      uv = vec2(x, y - 1.0);\n                  gl_FragColor = texture2D(to, texCoord - uv);\n              }\n          }\n          else if (x <= 0.0 && y <= 0.0) {\n              if (texCoord.x <= (1.0 + x) && texCoord.y <= (1.0 + y))\n                  gl_FragColor = texture2D(from, texCoord - vec2(x, y));\n              else {\n                  vec2 uv;\n                  if (x < 0.0)\n                      uv = vec2(x + 1.0, y);\n                  else if (y < 0.0)\n                      uv = vec2(x, y + 1.0);\n                  gl_FragColor = texture2D(to, texCoord - uv);\n              }\n          }\n          else\n              gl_FragColor = vec4(0.0);\n      }\n    ",
     uniforms: {
       translateX: 0,
       translateY: 1
     }
   },
   slideDown: {
-    shader: `
-      #ifdef GL_ES
-      precision highp float;
-      #endif
-      uniform sampler2D from, to;
-      uniform float progress;
-      uniform vec2 resolution;
-
-      uniform float translateX;
-      uniform float translateY;
-
-      void main() {
-          vec2 texCoord = gl_FragCoord.xy / resolution.xy;
-          float x = progress * translateX;
-          float y = progress * translateY;
-
-          if (x >= 0.0 && y >= 0.0) {
-              if (texCoord.x >= x && texCoord.y >= y) {
-                  gl_FragColor = texture2D(from, texCoord - vec2(x, y));
-              }
-              else {
-                  vec2 uv;
-                  if (x > 0.0)
-                      uv = vec2(x - 1.0, y);
-                  else if (y > 0.0)
-                      uv = vec2(x, y - 1.0);
-                  gl_FragColor = texture2D(to, texCoord - uv);
-              }
-          }
-          else if (x <= 0.0 && y <= 0.0) {
-              if (texCoord.x <= (1.0 + x) && texCoord.y <= (1.0 + y))
-                  gl_FragColor = texture2D(from, texCoord - vec2(x, y));
-              else {
-                  vec2 uv;
-                  if (x < 0.0)
-                      uv = vec2(x + 1.0, y);
-                  else if (y < 0.0)
-                      uv = vec2(x, y + 1.0);
-                  gl_FragColor = texture2D(to, texCoord - uv);
-              }
-          }
-          else
-              gl_FragColor = vec4(0.0);
-      }
-    `,
+    shader: "\n      #ifdef GL_ES\n      precision highp float;\n      #endif\n      uniform sampler2D from, to;\n      uniform float progress;\n      uniform vec2 resolution;\n\n      uniform float translateX;\n      uniform float translateY;\n\n      void main() {\n          vec2 texCoord = gl_FragCoord.xy / resolution.xy;\n          float x = progress * translateX;\n          float y = progress * translateY;\n\n          if (x >= 0.0 && y >= 0.0) {\n              if (texCoord.x >= x && texCoord.y >= y) {\n                  gl_FragColor = texture2D(from, texCoord - vec2(x, y));\n              }\n              else {\n                  vec2 uv;\n                  if (x > 0.0)\n                      uv = vec2(x - 1.0, y);\n                  else if (y > 0.0)\n                      uv = vec2(x, y - 1.0);\n                  gl_FragColor = texture2D(to, texCoord - uv);\n              }\n          }\n          else if (x <= 0.0 && y <= 0.0) {\n              if (texCoord.x <= (1.0 + x) && texCoord.y <= (1.0 + y))\n                  gl_FragColor = texture2D(from, texCoord - vec2(x, y));\n              else {\n                  vec2 uv;\n                  if (x < 0.0)\n                      uv = vec2(x + 1.0, y);\n                  else if (y < 0.0)\n                      uv = vec2(x, y + 1.0);\n                  gl_FragColor = texture2D(to, texCoord - uv);\n              }\n          }\n          else\n              gl_FragColor = vec4(0.0);\n      }\n    ",
     uniforms: {
       translateX: 0,
       translateY: -1
     }
   },
   slideLeft: {
-    shader: `
-      #ifdef GL_ES
-      precision highp float;
-      #endif
-      uniform sampler2D from, to;
-      uniform float progress;
-      uniform vec2 resolution;
-
-      uniform float translateX;
-      uniform float translateY;
-
-      void main() {
-          vec2 texCoord = gl_FragCoord.xy / resolution.xy;
-          float x = progress * translateX;
-          float y = progress * translateY;
-
-          if (x >= 0.0 && y >= 0.0) {
-              if (texCoord.x >= x && texCoord.y >= y) {
-                  gl_FragColor = texture2D(from, texCoord - vec2(x, y));
-              }
-              else {
-                  vec2 uv;
-                  if (x > 0.0)
-                      uv = vec2(x - 1.0, y);
-                  else if (y > 0.0)
-                      uv = vec2(x, y - 1.0);
-                  gl_FragColor = texture2D(to, texCoord - uv);
-              }
-          }
-          else if (x <= 0.0 && y <= 0.0) {
-              if (texCoord.x <= (1.0 + x) && texCoord.y <= (1.0 + y))
-                  gl_FragColor = texture2D(from, texCoord - vec2(x, y));
-              else {
-                  vec2 uv;
-                  if (x < 0.0)
-                      uv = vec2(x + 1.0, y);
-                  else if (y < 0.0)
-                      uv = vec2(x, y + 1.0);
-                  gl_FragColor = texture2D(to, texCoord - uv);
-              }
-          }
-          else
-              gl_FragColor = vec4(0.0);
-      }
-    `,
+    shader: "\n      #ifdef GL_ES\n      precision highp float;\n      #endif\n      uniform sampler2D from, to;\n      uniform float progress;\n      uniform vec2 resolution;\n\n      uniform float translateX;\n      uniform float translateY;\n\n      void main() {\n          vec2 texCoord = gl_FragCoord.xy / resolution.xy;\n          float x = progress * translateX;\n          float y = progress * translateY;\n\n          if (x >= 0.0 && y >= 0.0) {\n              if (texCoord.x >= x && texCoord.y >= y) {\n                  gl_FragColor = texture2D(from, texCoord - vec2(x, y));\n              }\n              else {\n                  vec2 uv;\n                  if (x > 0.0)\n                      uv = vec2(x - 1.0, y);\n                  else if (y > 0.0)\n                      uv = vec2(x, y - 1.0);\n                  gl_FragColor = texture2D(to, texCoord - uv);\n              }\n          }\n          else if (x <= 0.0 && y <= 0.0) {\n              if (texCoord.x <= (1.0 + x) && texCoord.y <= (1.0 + y))\n                  gl_FragColor = texture2D(from, texCoord - vec2(x, y));\n              else {\n                  vec2 uv;\n                  if (x < 0.0)\n                      uv = vec2(x + 1.0, y);\n                  else if (y < 0.0)\n                      uv = vec2(x, y + 1.0);\n                  gl_FragColor = texture2D(to, texCoord - uv);\n              }\n          }\n          else\n              gl_FragColor = vec4(0.0);\n      }\n    ",
     uniforms: {
       translateX: 1,
       translateY: 0
     }
   },
   slideRight: {
-    shader: `
-      #ifdef GL_ES
-      precision highp float;
-      #endif
-      uniform sampler2D from, to;
-      uniform float progress;
-      uniform vec2 resolution;
-
-      uniform float translateX;
-      uniform float translateY;
-
-      void main() {
-          vec2 texCoord = gl_FragCoord.xy / resolution.xy;
-          float x = progress * translateX;
-          float y = progress * translateY;
-
-          if (x >= 0.0 && y >= 0.0) {
-              if (texCoord.x >= x && texCoord.y >= y) {
-                  gl_FragColor = texture2D(from, texCoord - vec2(x, y));
-              }
-              else {
-                  vec2 uv;
-                  if (x > 0.0)
-                      uv = vec2(x - 1.0, y);
-                  else if (y > 0.0)
-                      uv = vec2(x, y - 1.0);
-                  gl_FragColor = texture2D(to, texCoord - uv);
-              }
-          }
-          else if (x <= 0.0 && y <= 0.0) {
-              if (texCoord.x <= (1.0 + x) && texCoord.y <= (1.0 + y))
-                  gl_FragColor = texture2D(from, texCoord - vec2(x, y));
-              else {
-                  vec2 uv;
-                  if (x < 0.0)
-                      uv = vec2(x + 1.0, y);
-                  else if (y < 0.0)
-                      uv = vec2(x, y + 1.0);
-                  gl_FragColor = texture2D(to, texCoord - uv);
-              }
-          }
-          else
-              gl_FragColor = vec4(0.0);
-      }
-    `,
+    shader: "\n      #ifdef GL_ES\n      precision highp float;\n      #endif\n      uniform sampler2D from, to;\n      uniform float progress;\n      uniform vec2 resolution;\n\n      uniform float translateX;\n      uniform float translateY;\n\n      void main() {\n          vec2 texCoord = gl_FragCoord.xy / resolution.xy;\n          float x = progress * translateX;\n          float y = progress * translateY;\n\n          if (x >= 0.0 && y >= 0.0) {\n              if (texCoord.x >= x && texCoord.y >= y) {\n                  gl_FragColor = texture2D(from, texCoord - vec2(x, y));\n              }\n              else {\n                  vec2 uv;\n                  if (x > 0.0)\n                      uv = vec2(x - 1.0, y);\n                  else if (y > 0.0)\n                      uv = vec2(x, y - 1.0);\n                  gl_FragColor = texture2D(to, texCoord - uv);\n              }\n          }\n          else if (x <= 0.0 && y <= 0.0) {\n              if (texCoord.x <= (1.0 + x) && texCoord.y <= (1.0 + y))\n                  gl_FragColor = texture2D(from, texCoord - vec2(x, y));\n              else {\n                  vec2 uv;\n                  if (x < 0.0)\n                      uv = vec2(x + 1.0, y);\n                  else if (y < 0.0)\n                      uv = vec2(x, y + 1.0);\n                  gl_FragColor = texture2D(to, texCoord - uv);\n              }\n          }\n          else\n              gl_FragColor = vec4(0.0);\n      }\n    ",
     uniforms: {
       translateX: -1,
       translateY: 0
     }
   }
 };
+
+var classCallCheck = function (instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+};
+
+var createClass = function () {
+  function defineProperties(target, props) {
+    for (var i = 0; i < props.length; i++) {
+      var descriptor = props[i];
+      descriptor.enumerable = descriptor.enumerable || false;
+      descriptor.configurable = true;
+      if ("value" in descriptor) descriptor.writable = true;
+      Object.defineProperty(target, descriptor.key, descriptor);
+    }
+  }
+
+  return function (Constructor, protoProps, staticProps) {
+    if (protoProps) defineProperties(Constructor.prototype, protoProps);
+    if (staticProps) defineProperties(Constructor, staticProps);
+    return Constructor;
+  };
+}();
 
 /* eslint-env browser  */
 
@@ -7940,43 +7591,33 @@ const transitions = {
  * - fallback for no-webgl (use gsap?)
  */
 
-const pica = pica$1();
+var pica = pica$1();
 
-const TRANSITION_FORWARDS = 'forwards';
-const TRANSITION_BACKWARDS = 'backwards';
-const TRANSITION_RANDOM = 'random';
+var TRANSITION_FORWARDS = 'forwards';
+var TRANSITION_BACKWARDS = 'backwards';
+var TRANSITION_RANDOM = 'random';
 
-const TRANSITION_NONE_SHADER = `
-  #ifdef GL_ES
-  precision highp float;
-  #endif
-  uniform sampler2D from, to;
-  uniform float progress;
-  uniform vec2 resolution;
-
-  void main() {
-    vec2 p = gl_FragCoord.xy / resolution.xy;
-    gl_FragColor = texture2D(to, p);
-  }
-`;
+var TRANSITION_NONE_SHADER = '\n  #ifdef GL_ES\n  precision highp float;\n  #endif\n  uniform sampler2D from, to;\n  uniform float progress;\n  uniform vec2 resolution;\n\n  void main() {\n    vec2 p = gl_FragCoord.xy / resolution.xy;\n    gl_FragColor = texture2D(to, p);\n  }\n';
 
 // Polyfill playing status
 if (window.HTMLMediaElement) {
   Object.defineProperty(HTMLMediaElement.prototype, 'playing', {
-    get() {
+    get: function get$$1() {
       return !!(this.currentTime > 0 && !this.paused && !this.ended && this.readyState > 2);
     }
   });
 }
 
-class Showy {
-  constructor(config) {
-    const defaultConfig = {
+var Showy = function () {
+  function Showy(config) {
+    classCallCheck(this, Showy);
+
+    var defaultConfig = {
       container: 'body',
       slides: [],
       autoplay: false,
       slideDuration: 3000,
-      transitions,
+      transitions: transitions,
       transition: {
         name: 'random',
         duration: 2000,
@@ -8027,788 +7668,858 @@ class Showy {
     window.requestAnimationFrame(this._animate.bind(this));
   }
 
-  goToSlide(index, direction) {
-    this._transitionToIndex = index;
-    this._transitionDirection = direction;
+  createClass(Showy, [{
+    key: 'goToSlide',
+    value: function goToSlide(index, direction) {
+      this._transitionToIndex = index;
+      this._transitionDirection = direction;
 
-    this._currentSlideRendered = false;
+      this._currentSlideRendered = false;
 
-    if (this._autoPlayTimeout) {
-      clearTimeout(this._autoPlayTimeout);
-    }
-  }
-
-  nextSlide() {
-    let index;
-
-    if (this._transitionToIndex === this._currentSlideIndex - 1 || this._transitionToIndex === this._slides.length - 1 && this._currentSlideIndex === 0) {
-      // Cancel and reverse the transition
-      index = this._currentSlideIndex;
-    } else {
-      index = this._currentSlideIndex === this._slides.length - 1 ? 0 : this._currentSlideIndex + 1;
-    }
-
-    this.goToSlide(index, TRANSITION_FORWARDS);
-  }
-
-  prevSlide() {
-    let index;
-
-    if (this._transitionToIndex === this._currentSlideIndex + 1 || this._transitionToIndex === 0 && this._currentSlideIndex === this._slides.length - 1) {
-      // Cancel and reverse the transition
-      index = this._currentSlideIndex;
-    } else {
-      index = this._currentSlideIndex === 0 ? this._slides.length - 1 : this._currentSlideIndex - 1;
-    }
-
-    this.goToSlide(index, TRANSITION_BACKWARDS);
-  }
-
-  play() {
-    this._playing = true;
-
-    this.nextSlide();
-  }
-
-  pause() {
-    this._playing = false;
-
-    if (this._autoPlayTimeout) {
-      clearTimeout(this._autoPlayTimeout);
-    }
-  }
-
-  destroy() {
-    this._playing = false;
-
-    this._destroyed = true;
-
-    window.removeEventListener('resize', this._resizeHandler);
-
-    _.forEach(this._videoMap, video => {
-      this.container.removeChild(video);
-      video = null;
-    });
-    this._videoMap = null;
-  }
-
-  static _updateCoords(src, dst, scaleMode) {
-    const srcRatio = src.width / src.height;
-    const dstRatio = dst.width / dst.height;
-
-    if (scaleMode && scaleMode === 'fill') {
-      if (srcRatio < dstRatio) {
-        const newHeight = dst.height * (src.width / dst.width);
-        src.y = src.y + (src.height - newHeight) * 0.5;
-        src.height = newHeight;
-      }
-      if (srcRatio > dstRatio) {
-        const newWidth = dst.width * (src.height / dst.height);
-        src.x = src.x + (src.width - newWidth) * 0.5;
-        src.width = newWidth;
-      }
-    } else {
-      if (srcRatio > dstRatio) {
-        const newHeight = dst.width * (src.height / src.width);
-        dst.y = dst.y + (dst.height - newHeight) * 0.5;
-        dst.height = newHeight;
-      }
-      if (srcRatio < dstRatio) {
-        const newWidth = dst.height * srcRatio;
-        dst.x = dst.x + (dst.width - newWidth) * 0.5;
-        dst.width = newWidth;
+      if (this._autoPlayTimeout) {
+        clearTimeout(this._autoPlayTimeout);
       }
     }
+  }, {
+    key: 'nextSlide',
+    value: function nextSlide() {
+      var index = void 0;
 
-    // Round properties for pica (and general speed up)
-    const roundProps = ['x', 'y', 'width', 'height'];
+      if (this._transitionToIndex === this._currentSlideIndex - 1 || this._transitionToIndex === this._slides.length - 1 && this._currentSlideIndex === 0) {
+        // Cancel and reverse the transition
+        index = this._currentSlideIndex;
+      } else {
+        index = this._currentSlideIndex === this._slides.length - 1 ? 0 : this._currentSlideIndex + 1;
+      }
 
-    roundProps.forEach(prop => {
-      src[prop] = Math.round(src[prop]);
-      dst[prop] = Math.round(dst[prop]);
-    });
-
-    return {
-      src,
-      dst
-    };
-  }
-
-  static _getTile(dst, size) {
-    return {
-      x: dst.x,
-      y: dst.y,
-      width: size[0] <= 1 ? dst.width * size[0] : size[0],
-      height: size[1] <= 1 ? dst.height * size[1] : size[1]
-    };
-  }
-
-  static _drawTiles(dst, tile, scaleMode, callback) {
-    let rows;
-    let columns;
-
-    let offsetWidth = 0;
-    let offsetHeight = 0;
-
-    if (scaleMode && scaleMode === 'fill') {
-      rows = Math.ceil(dst.height / tile.height);
-      columns = Math.ceil(dst.width / tile.width);
-
-      offsetWidth = (tile.width * columns - dst.width) * 0.5;
-      offsetHeight = (tile.height * rows - dst.height) * 0.5;
-    } else {
-      rows = Math.floor(dst.height / tile.height);
-      columns = Math.floor(dst.width / tile.width);
+      this.goToSlide(index, TRANSITION_FORWARDS);
     }
+  }, {
+    key: 'prevSlide',
+    value: function prevSlide() {
+      var index = void 0;
 
-    let row = 0;
-    let column = 0;
+      if (this._transitionToIndex === this._currentSlideIndex + 1 || this._transitionToIndex === 0 && this._currentSlideIndex === this._slides.length - 1) {
+        // Cancel and reverse the transition
+        index = this._currentSlideIndex;
+      } else {
+        index = this._currentSlideIndex === 0 ? this._slides.length - 1 : this._currentSlideIndex - 1;
+      }
 
-    const totalTiles = rows * columns;
+      this.goToSlide(index, TRANSITION_BACKWARDS);
+    }
+  }, {
+    key: 'play',
+    value: function play() {
+      this._playing = true;
 
-    for (let i = 0; i < totalTiles; i++) {
-      callback({
-        x: tile.x + column * tile.width - offsetWidth,
-        y: tile.y + row * tile.height - offsetHeight
+      this.nextSlide();
+    }
+  }, {
+    key: 'pause',
+    value: function pause() {
+      this._playing = false;
+
+      if (this._autoPlayTimeout) {
+        clearTimeout(this._autoPlayTimeout);
+      }
+    }
+  }, {
+    key: 'destroy',
+    value: function destroy() {
+      var _this = this;
+
+      this._playing = false;
+
+      this._destroyed = true;
+
+      window.removeEventListener('resize', this._resizeHandler);
+
+      _.forEach(this._videoMap, function (video) {
+        _this.container.removeChild(video);
+        video = null;
       });
-
-      if (column === columns - 1) {
-        row++;
-      }
-
-      column = column < columns - 1 ? column + 1 : 0;
+      this._videoMap = null;
     }
-  }
+  }, {
+    key: '_transitionEnded',
+    value: function _transitionEnded() {
+      // console.log('Transition Ended');
+    }
+  }, {
+    key: '_videoEnded',
+    value: function _videoEnded(video, videoObject) {
+      // console.log('Video Ended');
 
-  static _getImageData(image, x, y, width, height) {
-    const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = image.naturalWidth;
-    tempCanvas.height = image.naturalHeight;
-    const tempContext = tempCanvas.getContext('2d');
-    tempContext.drawImage(image, 0, 0, image.naturalWidth, image.naturalHeight);
-    return tempContext.getImageData(x, y, width, height).data;
-  }
+      var slide = this._slides[this._transitionToIndex];
 
-  static _getVideoData(video) {
-    const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = video.videoWidth;
-    tempCanvas.height = video.videoHeight;
-    const tempContext = tempCanvas.getContext('2d');
-    tempContext.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
-    return tempContext._getImageData(0, 0, video.videoWidth, video.videoHeight).data;
-  }
+      if (this._playing) {
+        if (slide.duration && _.isFunction(slide.duration)) {
+          var object = slide.duration();
 
-  _transitionEnded() {
-    // console.log('Transition Ended');
-  }
-
-  _videoEnded(video, videoObject) {
-    // console.log('Video Ended');
-
-    const slide = this._slides[this._transitionToIndex];
-
-    if (this._playing) {
-      if (slide.duration && _.isFunction(slide.duration)) {
-        let object = slide.duration();
-
-        if (this._isType(object, 'video')) {
-          this.nextSlide();
+          if (this._isType(object, 'video')) {
+            this.nextSlide();
+          }
         }
       }
     }
-  }
-
-  _slideLoaded(slide, slideIndex) {
-    // console.log('Slide Loaded');
-  }
-
-  _slideRendered() {
-    // console.log('Slide Rendered');
-
-    if (!this._ready) {
-      // Showy is ready for the first time
-      this._ready = true;
-      this.container.classList.add('showy--ready');
+  }, {
+    key: '_slideLoaded',
+    value: function _slideLoaded(slide, slideIndex) {
+      // console.log('Slide Loaded');
     }
+  }, {
+    key: '_slideRendered',
+    value: function _slideRendered() {
+      var _this2 = this;
 
-    const slide = this._slides[this._transitionToIndex];
+      // console.log('Slide Rendered');
 
-    if (this._playing) {
-      let slideDuration = this.config.slideDuration;
+      if (!this._ready) {
+        // Showy is ready for the first time
+        this._ready = true;
+        this.container.classList.add('showy--ready');
+      }
 
-      if (slide.duration) {
-        if (_.isFunction(slide.duration)) {
-          let object = slide.duration();
+      var slide = this._slides[this._transitionToIndex];
 
-          if (this._isType(object, 'video')) {
-            return;
+      if (this._playing) {
+        var slideDuration = this.config.slideDuration;
+
+        if (slide.duration) {
+          if (_.isFunction(slide.duration)) {
+            var object = slide.duration();
+
+            if (this._isType(object, 'video')) {
+              return;
+            }
+          }
+
+          if (_.isNumber(slide.duration)) {
+            slideDuration = slide.duration;
           }
         }
 
-        if (_.isNumber(slide.duration)) {
-          slideDuration = slide.duration;
-        }
-      }
-
-      this._autoPlayTimeout = setTimeout(() => {
-        this.nextSlide();
-      }, slideDuration);
-    }
-  }
-
-  _animate(frameTime) {
-    if (this._destroyed) {
-      return;
-    }
-
-    this._fps = 1000 / (frameTime - this._lastFrameTime);
-
-    try {
-      this._drawSlides();
-
-      window.requestAnimationFrame(this._animate.bind(this));
-    } catch (error) {
-      console.error(error);
-    }
-
-    this._lastFrameTime = frameTime;
-  }
-
-  _createCanvas() {
-    const canvas = document.createElement('canvas');
-    canvas.style.position = 'absolute';
-    canvas.style.width = '100%';
-    canvas.style.height = '100%';
-    this._resizeCanvas(canvas);
-    return canvas;
-  }
-
-  _createCanvases() {
-    this._currentCanvas = this._createCanvas();
-    this._currentContext = this._currentCanvas.getContext('2d');
-
-    this._nextCanvas = this._createCanvas();
-    this._nextContext = this._nextCanvas.getContext('2d');
-
-    this._prevCanvas = this._createCanvas();
-    this._prevContext = this._prevCanvas.getContext('2d');
-
-    this._renderCanvas = this._createCanvas();
-    this._renderContext = this._renderCanvas.getContext('webgl') || this._renderCanvas.getContext('experimental-webgl');
-    this._renderContext.pixelStorei(this._renderContext.UNPACK_FLIP_Y_WEBGL, true);
-
-    this.container.appendChild(this._renderCanvas);
-  }
-
-  _resizeCanvas(canvas) {
-    this._scale = window.devicePixelRatio;
-    this._width = this.container.clientWidth * this._scale;
-    this._height = this.container.clientHeight * this._scale;
-    canvas.width = this._width;
-    canvas.height = this._height;
-  }
-
-  resize() {
-    // Remove all cached imageData as this will be redundant now
-    this._slideContentMap = {};
-
-    this._resizeCanvas(this._currentCanvas);
-    this._resizeCanvas(this._nextCanvas);
-    this._resizeCanvas(this._prevCanvas);
-    this._resizeCanvas(this._renderCanvas);
-
-    this._drawSlides(true);
-  }
-
-  _clearContext(context) {
-    context.clearRect(0, 0, this._width, this._height);
-  }
-
-  _transitionInProgress() {
-    return this._transitionProgress > 0 && this._transitionProgress < 1;
-  }
-
-  _getTransition(currentSlideTransition = {}, nextPrevSlideTransition = {}) {
-    const _currentSlideTransition = _.merge({}, this.config.transition, currentSlideTransition || {});
-    const _nextPrevSlideTransition = _.merge({}, this.config.transition, nextPrevSlideTransition || {});
-    if (_currentSlideTransition.name === TRANSITION_RANDOM) {
-      _currentSlideTransition.glsl = _.sample(this.config.transitions);
-    } else {
-      _currentSlideTransition.glsl = this.config.transitions[_currentSlideTransition.name];
-    }
-    if (_nextPrevSlideTransition.name === TRANSITION_RANDOM) {
-      _nextPrevSlideTransition.glsl = _.sample(this.config.transitions);
-    } else {
-      _nextPrevSlideTransition.glsl = this.config.transitions[_nextPrevSlideTransition.name];
-    }
-    const transition = _currentSlideTransition.priority >= _nextPrevSlideTransition.priority ? _currentSlideTransition : _nextPrevSlideTransition;
-    return transition;
-  }
-
-  _drawSlides(reset) {
-    const currentSlide = this._slides[this._currentSlideIndex];
-    const nextSlide = this._slides[this._currentSlideIndex === this._slides.length - 1 ? 0 : this._currentSlideIndex + 1];
-    const prevSlide = this._slides[this._currentSlideIndex === 0 ? this._slides.length - 1 : this._currentSlideIndex - 1];
-
-    let transitionOptions;
-
-    // Rerender the current slide eg. if canvas has been resized
-    if (reset) {
-      currentSlide._rendered = false;
-    }
-
-    // Only render if we need to ie. only during transitions
-    // or if the current slide contains video(s)
-    if (!currentSlide._hasVideo && currentSlide._rendered && !this._transitionInProgress() && this._currentSlideIndex === this._transitionToIndex) {
-      return;
-    }
-
-    this._drawSlide(this._currentContext, currentSlide);
-    this._drawSlide(this._nextContext, nextSlide);
-    this._drawSlide(this._prevContext, prevSlide);
-
-    // Dispose of textures used in previous frame
-    if (this._fromTexture) {
-      this._fromTexture.dispose();
-    }
-    if (this._toTexture) {
-      this._toTexture.dispose();
-    }
-
-    // Transition is already running or has been triggered by a change of _transitionToIndex
-    if (this._transitionToIndex !== this._currentSlideIndex || this._transitionInProgress()) {
-      // We're heading to the next slide (or the transition has been cancelled halfway through)
-      if (this._transitionToIndex !== this._currentSlideIndex && this._transitionDirection === TRANSITION_FORWARDS || this._transitionToIndex === this._currentSlideIndex && this._transitionDirection === TRANSITION_BACKWARDS) {
-        this._fromTexture = texture(this._renderContext, this._currentCanvas);
-        this._toTexture = texture(this._renderContext, this._nextCanvas);
-        transitionOptions = this._getTransition(currentSlide.transitionNext, nextSlide.transitionPrev);
-      }
-      // We're heading to the previous slide (or the transition has been cancelled halfway through)
-      if (this._transitionToIndex !== this._currentSlideIndex && this._transitionDirection === TRANSITION_BACKWARDS || this._transitionToIndex === this._currentSlideIndex && this._transitionDirection === TRANSITION_FORWARDS) {
-        this._fromTexture = texture(this._renderContext, this._prevCanvas);
-        this._toTexture = texture(this._renderContext, this._currentCanvas);
-        transitionOptions = this._getTransition(currentSlide.transitionPrev, prevSlide.transitionNext);
-      }
-    } else {
-      // We're not transitioning so just rerender current slide (only if needed)
-      this._fromTexture = texture(this._renderContext, this._currentCanvas);
-      this._toTexture = this._fromTexture;
-    }
-
-    if (transitionOptions && !this._transitionInProgress() && (!this._transitionOptions || this._transitionOptions.name !== transitionOptions.name || this._transitionOptions.name === TRANSITION_RANDOM)) {
-      // Update transition options if required
-      this._transitionOptions = transitionOptions;
-
-      if (this._transition) {
-        // Destroy current transition in preparation to create a new one
-        this._transition.dispose();
-        this._transition = null;
+        this._autoPlayTimeout = setTimeout(function () {
+          _this2.nextSlide();
+        }, slideDuration);
       }
     }
-
-    if (this._transitionOptions) {
-      if (!this._transition) {
-        this._transition = glslTransition(this._renderContext, this._transitionOptions.glsl.shader);
-      }
-
-      if (this._transitionToIndex !== this._currentSlideIndex || this._transitionInProgress()) {
-        // Increment the transition progress depending on the direction
-        const progressIncrement = 60 / this._transitionOptions.duration;
-
-        if (this._transitionDirection === TRANSITION_FORWARDS) {
-          this._transitionProgress = this._transitionInProgress() ? this._transitionProgress + progressIncrement : progressIncrement;
-        }
-        if (this._transitionDirection === TRANSITION_BACKWARDS) {
-          this._transitionProgress = this._transitionInProgress() ? this._transitionProgress - progressIncrement : 1 - progressIncrement;
-        }
-      }
-
-      // We've reached the end of the transition
-      if (this._transitionProgress > 1) {
-        this._transitionProgress = 1;
-      }
-      if (this._transitionProgress < 0) {
-        this._transitionProgress = 0;
-      }
-
-      const easedTransitionProgress = eases[this._transitionOptions.ease](this._transitionProgress);
-
-      this._transition.render(easedTransitionProgress, this._fromTexture, this._toTexture, this._transitionOptions.glsl.uniforms);
-    } else {
-      // No transition specified, just render
-      if (!this._transition) {
-        this._transition = glslTransition(this._renderContext, TRANSITION_NONE_SHADER);
-      }
-
-      this._transition.render(1, this._fromTexture, this._toTexture);
-    }
-
-    // We have rendered the current slide for the first time
-    if (currentSlide._ready) {
-      currentSlide._rendered = true;
-
-      if (!this._currentSlideRendered) {
-        this._currentSlideRendered = true;
-
-        this._playSlideContent(this._transitionToIndex);
-
-        this._slideRendered();
-      }
-    }
-
-    // Transition is finished
-    if (this._transitionToIndex !== this._currentSlideIndex && !this._transitionInProgress()) {
-      this._currentSlideIndex = this._transitionToIndex;
-
-      this._clearContext(this._currentContext);
-      this._clearContext(this._nextContext);
-      this._clearContext(this._prevContext);
-
-      this._pauseSlideContent();
-
-      this._transitionEnded();
-    }
-  }
-
-  _isType(object, type) {
-    return object.type === type || object[type] || this._regExp[type] && object.url && this._regExp[type].test(object.url) || this._regExp[type] && object.sources && this._regExp[type].test(object.sources[0].url);
-  }
-
-  _drawSlide(context, slide) {
-    slide._hasVideo = slide.content.filter(object => this._isType(object, 'video')).length > 0;
-    slide._rendered = false;
-    slide._ready = false;
-    if (!slide._loaded) {
-      slide._loaded = false;
-    }
-
-    if (slide.background) {
-      context.fillStyle = slide.background;
-      context.fillRect(0, 0, this._width, this._height);
-    }
-
-    if (slide.content.length) {
-      this._drawSlideContent(context, slide, 0);
-    }
-  }
-
-  _drawSlideContent(context, slide, index) {
-    const object = slide.content[index];
-
-    if (!object) {
-      slide._ready = true;
-
-      if (!slide._loaded) {
-        slide._loaded = true;
-        this._slideLoaded(slide, this._slides.indexOf(slide));
-      }
-      return;
-    }
-
-    const callback = this._drawSlideContent.bind(this, context, slide, index + 1);
-
-    if (this._isType(object, 'image')) {
-      this._drawImage(context, object, callback);
-      return;
-    }
-
-    if (this._isType(object, 'video')) {
-      this._drawVideo(context, object, callback);
-      return;
-    }
-
-    if (this._isType(object, 'text')) {
-      this._drawText(context, object, callback);
-      return;
-    }
-
-    throw new Error('Unknown content type');
-  }
-
-  _position2Pixels(position, scale = 1) {
-    const _pixels = [];
-
-    position.forEach((val, index) => {
-      let pixel;
-
-      let length = [this._width, this._height, this._width, this._height][index];
-
-      length /= scale;
-
-      if (val >= 0 && val <= 1) {
-        if (index < 2) {
-          pixel = val * length;
-        } else {
-          pixel = val * length - _pixels[index - 2];
-        }
-      } else if (index < 2) {
-        pixel = val;
-      } else {
-        pixel = length - _pixels[index - 2] - Math.abs(val);
-      }
-
-      _pixels.push(pixel);
-    });
-
-    const pixels = {
-      x: _pixels[0] * scale,
-      y: _pixels[1] * scale,
-      width: _pixels[2] * scale,
-      height: _pixels[3] * scale
-    };
-
-    return pixels;
-  }
-
-  _getImage(object, callback) {
-    const url = typeof object.url === 'function' ? object.url() : object.url;
-
-    if (this._imageMap[url]) {
-      callback(this._imageMap[url]);
-      return;
-    }
-
-    const image = new Image();
-    image.crossOrigin = 'Anonymous';
-    image.src = url;
-    image.onerror = event => {
-      this.destroy();
-
-      throw new Error('Image failed to load', url);
-    };
-    image.onload = event => {
-      this._imageMap[url] = image;
-      callback(image);
-    };
-  }
-
-  _resizeImage(image, src, dst, callback) {
-    const resizedImageKey = JSON.stringify({
-      src: image.src,
-      dst
-    });
-
-    if (this._slideContentMap[resizedImageKey]) {
-      callback(this._slideContentMap[resizedImageKey]);
-      return;
-    }
-
-    pica.resizeBuffer({
-      src: Showy._getImageData(image, src.x, src.y, src.width, src.height),
-      width: src.width,
-      height: src.height,
-      toWidth: dst.width,
-      toHeight: dst.height,
-      quality: 1,
-      alpha: false,
-      unsharpAmount: 0,
-      unsharpRadius: 0.5,
-      unsharpThreshold: 0
-    }).then(buffer => {
-      if (buffer.length) {
-        this._resizedImageData = new ImageData(new Uint8ClampedArray(buffer), dst.width, dst.height);
-
-        this._slideContentMap[resizedImageKey] = this._resizedImageData;
-
-        callback(this._slideContentMap[resizedImageKey]);
-
+  }, {
+    key: '_animate',
+    value: function _animate(frameTime) {
+      if (this._destroyed) {
         return;
       }
 
-      console.error(new Error('Resize failed'), image.src, src, dst);
-    }, error => {
-      console.error(error);
-    });
-  }
+      this._fps = 1000 / (frameTime - this._lastFrameTime);
 
-  _drawText(context, object, callback) {
-    let dst = this._position2Pixels(object.position, this._scale);
+      try {
+        this._drawSlides();
 
-    context.font = object.font || '72px sans-serif';
-    context.textAlign = object.align || 'center';
-    context.fillStyle = object.color || 'rgba(0, 0, 0, 1)';
+        window.requestAnimationFrame(this._animate.bind(this));
+      } catch (error) {
+        console.error(error);
+      }
 
-    let maxWidth = object.maxWidth ? object.maxWidth * this._width : undefined;
+      this._lastFrameTime = frameTime;
+    }
+  }, {
+    key: '_createCanvas',
+    value: function _createCanvas() {
+      var canvas = document.createElement('canvas');
+      canvas.style.position = 'absolute';
+      canvas.style.width = '100%';
+      canvas.style.height = '100%';
+      this._resizeCanvas(canvas);
+      return canvas;
+    }
+  }, {
+    key: '_createCanvases',
+    value: function _createCanvases() {
+      this._currentCanvas = this._createCanvas();
+      this._currentContext = this._currentCanvas.getContext('2d');
 
-    context.fillText(object.text, dst.x, dst.y, maxWidth);
+      this._nextCanvas = this._createCanvas();
+      this._nextContext = this._nextCanvas.getContext('2d');
 
-    callback();
-  }
+      this._prevCanvas = this._createCanvas();
+      this._prevContext = this._prevCanvas.getContext('2d');
 
-  _drawImage(context, object, callback) {
-    this._getImage(object, image => {
-      let src = {
-        x: 0,
-        y: 0,
-        width: image.naturalWidth,
-        height: image.naturalHeight
+      this._renderCanvas = this._createCanvas();
+      this._renderContext = this._renderCanvas.getContext('webgl') || this._renderCanvas.getContext('experimental-webgl');
+      this._renderContext.pixelStorei(this._renderContext.UNPACK_FLIP_Y_WEBGL, true);
+
+      this.container.appendChild(this._renderCanvas);
+    }
+  }, {
+    key: '_resizeCanvas',
+    value: function _resizeCanvas(canvas) {
+      this._scale = window.devicePixelRatio;
+      this._width = this.container.clientWidth * this._scale;
+      this._height = this.container.clientHeight * this._scale;
+      canvas.width = this._width;
+      canvas.height = this._height;
+    }
+  }, {
+    key: 'resize',
+    value: function resize() {
+      // Remove all cached imageData as this will be redundant now
+      this._slideContentMap = {};
+
+      this._resizeCanvas(this._currentCanvas);
+      this._resizeCanvas(this._nextCanvas);
+      this._resizeCanvas(this._prevCanvas);
+      this._resizeCanvas(this._renderCanvas);
+
+      this._drawSlides(true);
+    }
+  }, {
+    key: '_clearContext',
+    value: function _clearContext(context) {
+      context.clearRect(0, 0, this._width, this._height);
+    }
+  }, {
+    key: '_transitionInProgress',
+    value: function _transitionInProgress() {
+      return this._transitionProgress > 0 && this._transitionProgress < 1;
+    }
+  }, {
+    key: '_getTransition',
+    value: function _getTransition() {
+      var currentSlideTransition = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+      var nextPrevSlideTransition = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+      var _currentSlideTransition = _.merge({}, this.config.transition, currentSlideTransition || {});
+      var _nextPrevSlideTransition = _.merge({}, this.config.transition, nextPrevSlideTransition || {});
+      if (_currentSlideTransition.name === TRANSITION_RANDOM) {
+        _currentSlideTransition.glsl = _.sample(this.config.transitions);
+      } else {
+        _currentSlideTransition.glsl = this.config.transitions[_currentSlideTransition.name];
+      }
+      if (_nextPrevSlideTransition.name === TRANSITION_RANDOM) {
+        _nextPrevSlideTransition.glsl = _.sample(this.config.transitions);
+      } else {
+        _nextPrevSlideTransition.glsl = this.config.transitions[_nextPrevSlideTransition.name];
+      }
+      var transition = _currentSlideTransition.priority >= _nextPrevSlideTransition.priority ? _currentSlideTransition : _nextPrevSlideTransition;
+      return transition;
+    }
+  }, {
+    key: '_drawSlides',
+    value: function _drawSlides(reset) {
+      var currentSlide = this._slides[this._currentSlideIndex];
+      var nextSlide = this._slides[this._currentSlideIndex === this._slides.length - 1 ? 0 : this._currentSlideIndex + 1];
+      var prevSlide = this._slides[this._currentSlideIndex === 0 ? this._slides.length - 1 : this._currentSlideIndex - 1];
+
+      var transitionOptions = void 0;
+
+      // Rerender the current slide eg. if canvas has been resized
+      if (reset) {
+        currentSlide._rendered = false;
+      }
+
+      // Only render if we need to ie. only during transitions
+      // or if the current slide contains video(s)
+      if (!currentSlide._hasVideo && currentSlide._rendered && !this._transitionInProgress() && this._currentSlideIndex === this._transitionToIndex) {
+        return;
+      }
+
+      this._drawSlide(this._currentContext, currentSlide);
+      this._drawSlide(this._nextContext, nextSlide);
+      this._drawSlide(this._prevContext, prevSlide);
+
+      // Dispose of textures used in previous frame
+      if (this._fromTexture) {
+        this._fromTexture.dispose();
+      }
+      if (this._toTexture) {
+        this._toTexture.dispose();
+      }
+
+      // Transition is already running or has been triggered by a change of _transitionToIndex
+      if (this._transitionToIndex !== this._currentSlideIndex || this._transitionInProgress()) {
+        // We're heading to the next slide (or the transition has been cancelled halfway through)
+        if (this._transitionToIndex !== this._currentSlideIndex && this._transitionDirection === TRANSITION_FORWARDS || this._transitionToIndex === this._currentSlideIndex && this._transitionDirection === TRANSITION_BACKWARDS) {
+          this._fromTexture = texture(this._renderContext, this._currentCanvas);
+          this._toTexture = texture(this._renderContext, this._nextCanvas);
+          transitionOptions = this._getTransition(currentSlide.transitionNext, nextSlide.transitionPrev);
+        }
+        // We're heading to the previous slide (or the transition has been cancelled halfway through)
+        if (this._transitionToIndex !== this._currentSlideIndex && this._transitionDirection === TRANSITION_BACKWARDS || this._transitionToIndex === this._currentSlideIndex && this._transitionDirection === TRANSITION_FORWARDS) {
+          this._fromTexture = texture(this._renderContext, this._prevCanvas);
+          this._toTexture = texture(this._renderContext, this._currentCanvas);
+          transitionOptions = this._getTransition(currentSlide.transitionPrev, prevSlide.transitionNext);
+        }
+      } else {
+        // We're not transitioning so just rerender current slide (only if needed)
+        this._fromTexture = texture(this._renderContext, this._currentCanvas);
+        this._toTexture = this._fromTexture;
+      }
+
+      if (transitionOptions && !this._transitionInProgress() && (!this._transitionOptions || this._transitionOptions.name !== transitionOptions.name || this._transitionOptions.name === TRANSITION_RANDOM)) {
+        // Update transition options if required
+        this._transitionOptions = transitionOptions;
+
+        if (this._transition) {
+          // Destroy current transition in preparation to create a new one
+          this._transition.dispose();
+          this._transition = null;
+        }
+      }
+
+      if (this._transitionOptions) {
+        if (!this._transition) {
+          this._transition = glslTransition(this._renderContext, this._transitionOptions.glsl.shader);
+        }
+
+        if (this._transitionToIndex !== this._currentSlideIndex || this._transitionInProgress()) {
+          // Increment the transition progress depending on the direction
+          var progressIncrement = 60 / this._transitionOptions.duration;
+
+          if (this._transitionDirection === TRANSITION_FORWARDS) {
+            this._transitionProgress = this._transitionInProgress() ? this._transitionProgress + progressIncrement : progressIncrement;
+          }
+          if (this._transitionDirection === TRANSITION_BACKWARDS) {
+            this._transitionProgress = this._transitionInProgress() ? this._transitionProgress - progressIncrement : 1 - progressIncrement;
+          }
+        }
+
+        // We've reached the end of the transition
+        if (this._transitionProgress > 1) {
+          this._transitionProgress = 1;
+        }
+        if (this._transitionProgress < 0) {
+          this._transitionProgress = 0;
+        }
+
+        var easedTransitionProgress = eases[this._transitionOptions.ease](this._transitionProgress);
+
+        this._transition.render(easedTransitionProgress, this._fromTexture, this._toTexture, this._transitionOptions.glsl.uniforms);
+      } else {
+        // No transition specified, just render
+        if (!this._transition) {
+          this._transition = glslTransition(this._renderContext, TRANSITION_NONE_SHADER);
+        }
+
+        this._transition.render(1, this._fromTexture, this._toTexture);
+      }
+
+      // We have rendered the current slide for the first time
+      if (currentSlide._ready) {
+        currentSlide._rendered = true;
+
+        if (!this._currentSlideRendered) {
+          this._currentSlideRendered = true;
+
+          this._playSlideContent(this._transitionToIndex);
+
+          this._slideRendered();
+        }
+      }
+
+      // Transition is finished
+      if (this._transitionToIndex !== this._currentSlideIndex && !this._transitionInProgress()) {
+        this._currentSlideIndex = this._transitionToIndex;
+
+        this._clearContext(this._currentContext);
+        this._clearContext(this._nextContext);
+        this._clearContext(this._prevContext);
+
+        this._pauseSlideContent();
+
+        this._transitionEnded();
+      }
+    }
+  }, {
+    key: '_isType',
+    value: function _isType(object, type) {
+      return object.type === type || object[type] || this._regExp[type] && object.url && this._regExp[type].test(object.url) || this._regExp[type] && object.sources && this._regExp[type].test(object.sources[0].url);
+    }
+  }, {
+    key: '_drawSlide',
+    value: function _drawSlide(context, slide) {
+      var _this3 = this;
+
+      slide._hasVideo = slide.content.filter(function (object) {
+        return _this3._isType(object, 'video');
+      }).length > 0;
+      slide._rendered = false;
+      slide._ready = false;
+      if (!slide._loaded) {
+        slide._loaded = false;
+      }
+
+      if (slide.background) {
+        context.fillStyle = slide.background;
+        context.fillRect(0, 0, this._width, this._height);
+      }
+
+      if (slide.content.length) {
+        this._drawSlideContent(context, slide, 0);
+      }
+    }
+  }, {
+    key: '_drawSlideContent',
+    value: function _drawSlideContent(context, slide, index) {
+      var object = slide.content[index];
+
+      if (!object) {
+        slide._ready = true;
+
+        if (!slide._loaded) {
+          slide._loaded = true;
+          this._slideLoaded(slide, this._slides.indexOf(slide));
+        }
+        return;
+      }
+
+      var callback = this._drawSlideContent.bind(this, context, slide, index + 1);
+
+      if (this._isType(object, 'image')) {
+        this._drawImage(context, object, callback);
+        return;
+      }
+
+      if (this._isType(object, 'video')) {
+        this._drawVideo(context, object, callback);
+        return;
+      }
+
+      if (this._isType(object, 'text')) {
+        this._drawText(context, object, callback);
+        return;
+      }
+
+      throw new Error('Unknown content type');
+    }
+  }, {
+    key: '_position2Pixels',
+    value: function _position2Pixels(position) {
+      var _this4 = this;
+
+      var scale = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
+
+      var _pixels = [];
+
+      position.forEach(function (val, index) {
+        var pixel = void 0;
+
+        var length = [_this4._width, _this4._height, _this4._width, _this4._height][index];
+
+        length /= scale;
+
+        if (val >= 0 && val <= 1) {
+          if (index < 2) {
+            pixel = val * length;
+          } else {
+            pixel = val * length - _pixels[index - 2];
+          }
+        } else if (index < 2) {
+          pixel = val;
+        } else {
+          pixel = length - _pixels[index - 2] - Math.abs(val);
+        }
+
+        _pixels.push(pixel);
+      });
+
+      var pixels = {
+        x: _pixels[0] * scale,
+        y: _pixels[1] * scale,
+        width: _pixels[2] * scale,
+        height: _pixels[3] * scale
       };
 
-      let dst = this._position2Pixels(object.position, this._scale);
+      return pixels;
+    }
+  }, {
+    key: '_getImage',
+    value: function _getImage(object, callback) {
+      var _this5 = this;
 
-      if (object.tile) {
-        let tile = Showy._getTile(dst, object.tile.size);
+      var url = typeof object.url === 'function' ? object.url() : object.url;
 
-        const updatedCoords = Showy._updateCoords(src, tile, object.tile.scaleMode);
+      if (this._imageMap[url]) {
+        callback(this._imageMap[url]);
+        return;
+      }
 
-        this._resizeImage(image, updatedCoords.src, updatedCoords.dst, resizedImageData => {
+      var image = new Image();
+      image.crossOrigin = 'Anonymous';
+      image.src = url;
+      image.onerror = function (event) {
+        _this5.destroy();
 
-          Showy._drawTiles(dst, updatedCoords.dst, object.scaleMode, tileCoord => {
-            context.putImageData(resizedImageData, tileCoord.x, tileCoord.y);
+        throw new Error('Image failed to load', url);
+      };
+      image.onload = function (event) {
+        _this5._imageMap[url] = image;
+        callback(image);
+      };
+    }
+  }, {
+    key: '_resizeImage',
+    value: function _resizeImage(image, src, dst, callback) {
+      var _this6 = this;
+
+      var resizedImageKey = JSON.stringify({
+        src: image.src,
+        dst: dst
+      });
+
+      if (this._slideContentMap[resizedImageKey]) {
+        callback(this._slideContentMap[resizedImageKey]);
+        return;
+      }
+
+      pica.resizeBuffer({
+        src: Showy._getImageData(image, src.x, src.y, src.width, src.height),
+        width: src.width,
+        height: src.height,
+        toWidth: dst.width,
+        toHeight: dst.height,
+        quality: 1,
+        alpha: false,
+        unsharpAmount: 0,
+        unsharpRadius: 0.5,
+        unsharpThreshold: 0
+      }).then(function (buffer) {
+        if (buffer.length) {
+          _this6._resizedImageData = new ImageData(new Uint8ClampedArray(buffer), dst.width, dst.height);
+
+          _this6._slideContentMap[resizedImageKey] = _this6._resizedImageData;
+
+          callback(_this6._slideContentMap[resizedImageKey]);
+
+          return;
+        }
+
+        console.error(new Error('Resize failed'), image.src, src, dst);
+      }, function (error) {
+        console.error(error);
+      });
+    }
+  }, {
+    key: '_drawText',
+    value: function _drawText(context, object, callback) {
+      var dst = this._position2Pixels(object.position, this._scale);
+
+      context.font = object.font || '72px sans-serif';
+      context.textAlign = object.align || 'center';
+      context.fillStyle = object.color || 'rgba(0, 0, 0, 1)';
+
+      var maxWidth = object.maxWidth ? object.maxWidth * this._width : undefined;
+
+      context.fillText(object.text, dst.x, dst.y, maxWidth);
+
+      callback();
+    }
+  }, {
+    key: '_drawImage',
+    value: function _drawImage(context, object, callback) {
+      var _this7 = this;
+
+      this._getImage(object, function (image) {
+        var src = {
+          x: 0,
+          y: 0,
+          width: image.naturalWidth,
+          height: image.naturalHeight
+        };
+
+        var dst = _this7._position2Pixels(object.position, _this7._scale);
+
+        if (object.tile) {
+          var tile = Showy._getTile(dst, object.tile.size);
+
+          var _updatedCoords = Showy._updateCoords(src, tile, object.tile.scaleMode);
+
+          _this7._resizeImage(image, _updatedCoords.src, _updatedCoords.dst, function (resizedImageData) {
+
+            Showy._drawTiles(dst, _updatedCoords.dst, object.scaleMode, function (tileCoord) {
+              context.putImageData(resizedImageData, tileCoord.x, tileCoord.y);
+            });
+
+            callback();
           });
+
+          return;
+        }
+
+        var updatedCoords = Showy._updateCoords(src, dst, object.scaleMode);
+
+        src = updatedCoords.src;
+        dst = updatedCoords.dst;
+
+        _this7._resizeImage(image, src, dst, function (resizedImageData) {
+          context.putImageData(resizedImageData, dst.x, dst.y);
 
           callback();
         });
+      });
+    }
+  }, {
+    key: '_getVideo',
+    value: function _getVideo(object) {
+      var _this8 = this;
 
-        return;
+      var callback = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : function () {};
+
+      var url = typeof object.url === 'function' ? object.url() : object.url;
+      var sources = typeof object.sources === 'function' ? object.sources() : object.sources;
+
+      var videoKey = JSON.stringify(url || sources);
+
+      if (this._videoMap[videoKey]) {
+        callback(this._videoMap[videoKey]);
+
+        return this._videoMap[videoKey];
       }
 
-      const updatedCoords = Showy._updateCoords(src, dst, object.scaleMode);
+      var video = document.createElement('video');
+      video.style.display = 'none';
+      video.crossOrigin = 'anonymous';
+      video.muted = true;
+      this.container.appendChild(video);
 
-      src = updatedCoords.src;
-      dst = updatedCoords.dst;
+      if (url) {
+        video.src = url;
+      }
 
-      this._resizeImage(image, src, dst, resizedImageData => {
-        context.putImageData(resizedImageData, dst.x, dst.y);
+      if (sources) {
+        sources.forEach(function (source) {
+          var _source = document.createElement('source');
+          _source.src = source.url;
+          if (source.type) {
+            _source.type = source.type;
+          }
+          _source.crossOrigin = 'anonymous';
+          video.appendChild(_source);
+        });
+      }
 
-        callback();
+      this._videoMap[videoKey] = video;
+
+      video.addEventListener('loadedmetadata', function () {
+        callback(video);
       });
-    });
-  }
 
-  _getVideo(object, callback = () => {}) {
-    const url = typeof object.url === 'function' ? object.url() : object.url;
-    const sources = typeof object.sources === 'function' ? object.sources() : object.sources;
+      video._playCount = 0;
 
-    const videoKey = JSON.stringify(url || sources);
+      video.addEventListener('ended', function () {
+        video.play();
 
-    if (this._videoMap[videoKey]) {
-      callback(this._videoMap[videoKey]);
+        video._playCount += 1;
 
-      return this._videoMap[videoKey];
+        _this8._videoEnded(video, object);
+      });
+
+      return video;
     }
+  }, {
+    key: '_drawVideo',
+    value: function _drawVideo(context, object, callback) {
+      var _this9 = this;
 
-    const video = document.createElement('video');
-    video.style.display = 'none';
-    video.crossOrigin = 'anonymous';
-    video.muted = true;
-    this.container.appendChild(video);
-
-    if (url) {
-      video.src = url;
-    }
-
-    if (sources) {
-      sources.forEach(source => {
-        const _source = document.createElement('source');
-        _source.src = source.url;
-        if (source.type) {
-          _source.type = source.type;
+      this._getVideo(object, function (video) {
+        if (video.videoWidth === 0 || video.videoHeight === 0) {
+          return;
         }
-        _source.crossOrigin = 'anonymous';
-        video.appendChild(_source);
-      });
-    }
 
-    this._videoMap[videoKey] = video;
+        var src = {
+          x: 0,
+          y: 0,
+          width: video.videoWidth,
+          height: video.videoHeight
+        };
 
-    video.addEventListener('loadedmetadata', () => {
-      callback(video);
-    });
+        var dst = _this9._position2Pixels(object.position, _this9._scale);
 
-    video._playCount = 0;
+        if (object.tile) {
+          var tile = Showy._getTile(dst, object.tile.size);
 
-    video.addEventListener('ended', () => {
-      video.play();
+          var _updatedCoords2 = Showy._updateCoords(src, tile, object.tile.scaleMode);
 
-      video._playCount += 1;
+          Showy._drawTiles(dst, _updatedCoords2.dst, object.scaleMode, function (tileCoord) {
+            context.drawImage(video, src.x, src.y, src.width, src.height, tileCoord.x, tileCoord.y, tile.width, tile.height);
+          });
 
-      this._videoEnded(video, object);
-    });
+          callback();
 
-    return video;
-  }
+          return;
+        }
 
-  _drawVideo(context, object, callback) {
-    this._getVideo(object, video => {
-      if (video.videoWidth === 0 || video.videoHeight === 0) {
-        return;
-      }
+        var updatedCoords = Showy._updateCoords(src, dst, object.scaleMode);
 
-      let src = {
-        x: 0,
-        y: 0,
-        width: video.videoWidth,
-        height: video.videoHeight
-      };
+        src = updatedCoords.src;
+        dst = updatedCoords.dst;
 
-      let dst = this._position2Pixels(object.position, this._scale);
-
-      if (object.tile) {
-        let tile = Showy._getTile(dst, object.tile.size);
-
-        const updatedCoords = Showy._updateCoords(src, tile, object.tile.scaleMode);
-
-        Showy._drawTiles(dst, updatedCoords.dst, object.scaleMode, tileCoord => {
-          context.drawImage(video, src.x, src.y, src.width, src.height, tileCoord.x, tileCoord.y, tile.width, tile.height);
-        });
+        context.drawImage(video, src.x, src.y, src.width, src.height, dst.x, dst.y, dst.width, dst.height);
 
         callback();
+      });
+    }
+  }, {
+    key: '_playSlideContent',
+    value: function _playSlideContent(index) {
+      var _this10 = this;
 
-        return;
-      }
-
-      const updatedCoords = Showy._updateCoords(src, dst, object.scaleMode);
-
-      src = updatedCoords.src;
-      dst = updatedCoords.dst;
-
-      context.drawImage(video, src.x, src.y, src.width, src.height, dst.x, dst.y, dst.width, dst.height);
-
-      callback();
-    });
-  }
-
-  _playSlideContent(index) {
-    this._slides[index].content.forEach(object => {
-      if (this._isType(object, 'video')) {
-        this._getVideo(object, video => {
-          video._playCount = 0;
-          video.currentTime = 0;
-          video.play();
-        });
-      }
-    });
-  }
-
-  _pauseSlideContent() {
-    const currentSlideVideos = [];
-
-    this._slides[this._currentSlideIndex].content.forEach(object => {
-      if (this._isType(object, 'video')) {
-        currentSlideVideos.push(this._getVideo(object));
-      }
-    });
-
-    this._slides.forEach((slide, index) => {
-      if (index === this._currentSlideIndex) {
-        return;
-      }
-
-      slide.content.forEach(object => {
-        if (this._isType(object, 'video')) {
-          this._getVideo(object, video => {
-            if (currentSlideVideos.indexOf(video) === -1) {
-              video._playCount = 0;
-              video.currentTime = 0;
-              video.pause();
-            }
+      this._slides[index].content.forEach(function (object) {
+        if (_this10._isType(object, 'video')) {
+          _this10._getVideo(object, function (video) {
+            video._playCount = 0;
+            video.currentTime = 0;
+            video.play();
           });
         }
       });
-    });
-  }
-}
+    }
+  }, {
+    key: '_pauseSlideContent',
+    value: function _pauseSlideContent() {
+      var _this11 = this;
+
+      var currentSlideVideos = [];
+
+      this._slides[this._currentSlideIndex].content.forEach(function (object) {
+        if (_this11._isType(object, 'video')) {
+          currentSlideVideos.push(_this11._getVideo(object));
+        }
+      });
+
+      this._slides.forEach(function (slide, index) {
+        if (index === _this11._currentSlideIndex) {
+          return;
+        }
+
+        slide.content.forEach(function (object) {
+          if (_this11._isType(object, 'video')) {
+            _this11._getVideo(object, function (video) {
+              if (currentSlideVideos.indexOf(video) === -1) {
+                video._playCount = 0;
+                video.currentTime = 0;
+                video.pause();
+              }
+            });
+          }
+        });
+      });
+    }
+  }], [{
+    key: '_updateCoords',
+    value: function _updateCoords(src, dst, scaleMode) {
+      var srcRatio = src.width / src.height;
+      var dstRatio = dst.width / dst.height;
+
+      if (scaleMode && scaleMode === 'fill') {
+        if (srcRatio < dstRatio) {
+          var newHeight = dst.height * (src.width / dst.width);
+          src.y = src.y + (src.height - newHeight) * 0.5;
+          src.height = newHeight;
+        }
+        if (srcRatio > dstRatio) {
+          var newWidth = dst.width * (src.height / dst.height);
+          src.x = src.x + (src.width - newWidth) * 0.5;
+          src.width = newWidth;
+        }
+      } else {
+        if (srcRatio > dstRatio) {
+          var _newHeight = dst.width * (src.height / src.width);
+          dst.y = dst.y + (dst.height - _newHeight) * 0.5;
+          dst.height = _newHeight;
+        }
+        if (srcRatio < dstRatio) {
+          var _newWidth = dst.height * srcRatio;
+          dst.x = dst.x + (dst.width - _newWidth) * 0.5;
+          dst.width = _newWidth;
+        }
+      }
+
+      // Round properties for pica (and general speed up)
+      var roundProps = ['x', 'y', 'width', 'height'];
+
+      roundProps.forEach(function (prop) {
+        src[prop] = Math.round(src[prop]);
+        dst[prop] = Math.round(dst[prop]);
+      });
+
+      return {
+        src: src,
+        dst: dst
+      };
+    }
+  }, {
+    key: '_getTile',
+    value: function _getTile(dst, size) {
+      return {
+        x: dst.x,
+        y: dst.y,
+        width: size[0] <= 1 ? dst.width * size[0] : size[0],
+        height: size[1] <= 1 ? dst.height * size[1] : size[1]
+      };
+    }
+  }, {
+    key: '_drawTiles',
+    value: function _drawTiles(dst, tile, scaleMode, callback) {
+      var rows = void 0;
+      var columns = void 0;
+
+      var offsetWidth = 0;
+      var offsetHeight = 0;
+
+      if (scaleMode && scaleMode === 'fill') {
+        rows = Math.ceil(dst.height / tile.height);
+        columns = Math.ceil(dst.width / tile.width);
+
+        offsetWidth = (tile.width * columns - dst.width) * 0.5;
+        offsetHeight = (tile.height * rows - dst.height) * 0.5;
+      } else {
+        rows = Math.floor(dst.height / tile.height);
+        columns = Math.floor(dst.width / tile.width);
+      }
+
+      var row = 0;
+      var column = 0;
+
+      var totalTiles = rows * columns;
+
+      for (var i = 0; i < totalTiles; i++) {
+        callback({
+          x: tile.x + column * tile.width - offsetWidth,
+          y: tile.y + row * tile.height - offsetHeight
+        });
+
+        if (column === columns - 1) {
+          row++;
+        }
+
+        column = column < columns - 1 ? column + 1 : 0;
+      }
+    }
+  }, {
+    key: '_getImageData',
+    value: function _getImageData(image, x, y, width, height) {
+      var tempCanvas = document.createElement('canvas');
+      tempCanvas.width = image.naturalWidth;
+      tempCanvas.height = image.naturalHeight;
+      var tempContext = tempCanvas.getContext('2d');
+      tempContext.drawImage(image, 0, 0, image.naturalWidth, image.naturalHeight);
+      return tempContext.getImageData(x, y, width, height).data;
+    }
+  }, {
+    key: '_getVideoData',
+    value: function _getVideoData(video) {
+      var tempCanvas = document.createElement('canvas');
+      tempCanvas.width = video.videoWidth;
+      tempCanvas.height = video.videoHeight;
+      var tempContext = tempCanvas.getContext('2d');
+      tempContext.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
+      return tempContext._getImageData(0, 0, video.videoWidth, video.videoHeight).data;
+    }
+  }]);
+  return Showy;
+}();
 
 return Showy;
 
