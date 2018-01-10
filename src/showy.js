@@ -601,13 +601,13 @@ class Showy {
 
     const callback = this._drawSlideContent.bind(this, context, slide, index + 1);
 
-    if (this._isType(object, 'image')) {
-      this._drawImage(context, object, callback);
+    if (this._isType(object, 'video')) {
+      this._drawVideo(context, object, callback);
       return;
     }
 
-    if (this._isType(object, 'video')) {
-      this._drawVideo(context, object, callback);
+    if (this._isType(object, 'image')) {
+      this._drawImage(context, object, callback);
       return;
     }
 
@@ -789,10 +789,6 @@ class Showy {
     video.muted = true;
     this.container.appendChild(video);
 
-    if (url) {
-      video.src = url;
-    }
-
     if (sources) {
       sources.forEach((source) => {
         const _source = document.createElement('source');
@@ -803,6 +799,13 @@ class Showy {
         _source.crossOrigin = 'anonymous';
         video.appendChild(_source);
       });
+
+      if (url) {
+        video.poster = url;
+      }
+
+    } else if (url) {
+      video.src = url;
     }
 
     this._videoMap[videoKey] = video;
