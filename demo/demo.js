@@ -92,7 +92,10 @@ var config = {
       background: '#FFFFFF',
       content: [
         {
-          url: 'demo/assets/wowowl.mp4',
+          // url: 'demo/assets/wowowl.mp4',
+          sources: [
+            { url: 'demo/assets/wowowl.mp4', type: 'video/mp4' },
+          ],
           position: [0.4, 0.4, 0.6, 0.6],
           scaleMode: 'fill',
         },
