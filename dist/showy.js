@@ -8471,7 +8471,7 @@ class Showy {
   }
 
   _isType(object, type) {
-    return object.type === type || object[type] || this._regExp[type].test(object.url);
+    return object.type === type || object[type] || this._regExp[type] && object.url && this._regExp[type].test(object.url) || this._regExp[type] && object.sources && this._regExp[type].test(object.sources[0].url);
   }
 
   _drawSlide(context, slide) {
