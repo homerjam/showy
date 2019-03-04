@@ -693,7 +693,7 @@ class Showy {
       height: src.height,
       toWidth: dst.width,
       toHeight: dst.height,
-      quality: 1,
+      // quality: 1,
       alpha: false,
       unsharpAmount: 0,
       unsharpRadius: 0.5,
