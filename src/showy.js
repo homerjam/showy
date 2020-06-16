@@ -1,4 +1,5 @@
 /* eslint-env browser  */
+/* globals _ */
 
 /**
  * TODO
@@ -13,13 +14,11 @@
  * - fallback for no-webgl (use gsap?)
  */
 
-import Pica from 'pica';
+import pica from 'pica';
 import createTexture from 'gl-texture2d';
 import createTransition from 'glsl-transition';
 import eases from 'eases';
 import transitions from './transitions';
-
-const pica = Pica();
 
 const TRANSITION_FORWARDS = 'forwards';
 const TRANSITION_BACKWARDS = 'backwards';
@@ -42,8 +41,13 @@ const TRANSITION_NONE_SHADER = `
 // Polyfill playing status
 if (window.HTMLMediaElement) {
   Object.defineProperty(HTMLMediaElement.prototype, 'playing', {
-    get () {
-      return !!(this.currentTime > 0 && !this.paused && !this.ended && this.readyState > 2);
+    get() {
+      return !!(
+        this.currentTime > 0 &&
+        !this.paused &&
+        !this.ended &&
+        this.readyState > 2
+      );
     },
   });
 }
@@ -120,12 +124,18 @@ class Showy {
   nextSlide() {
     let index;
 
-    if (this._transitionToIndex === this._currentSlideIndex - 1 || (this._transitionToIndex === this._slides.length - 1 && this._currentSlideIndex === 0)) {
+    if (
+      this._transitionToIndex === this._currentSlideIndex - 1 ||
+      (this._transitionToIndex === this._slides.length - 1 &&
+        this._currentSlideIndex === 0)
+    ) {
       // Cancel and reverse the transition
       index = this._currentSlideIndex;
-
     } else {
-      index = this._currentSlideIndex === this._slides.length - 1 ? 0 : this._currentSlideIndex + 1;
+      index =
+        this._currentSlideIndex === this._slides.length - 1
+          ? 0
+          : this._currentSlideIndex + 1;
     }
 
     this.goToSlide(index, TRANSITION_FORWARDS);
@@ -134,12 +144,18 @@ class Showy {
   prevSlide() {
     let index;
 
-    if (this._transitionToIndex === this._currentSlideIndex + 1 || (this._transitionToIndex === 0 && this._currentSlideIndex === this._slides.length - 1)) {
+    if (
+      this._transitionToIndex === this._currentSlideIndex + 1 ||
+      (this._transitionToIndex === 0 &&
+        this._currentSlideIndex === this._slides.length - 1)
+    ) {
       // Cancel and reverse the transition
       index = this._currentSlideIndex;
-
     } else {
-      index = this._currentSlideIndex === 0 ? this._slides.length - 1 : this._currentSlideIndex - 1;
+      index =
+        this._currentSlideIndex === 0
+          ? this._slides.length - 1
+          : this._currentSlideIndex - 1;
     }
 
     this.goToSlide(index, TRANSITION_BACKWARDS);
@@ -180,23 +196,23 @@ class Showy {
     if (scaleMode && scaleMode === 'fill') {
       if (srcRatio < dstRatio) {
         const newHeight = dst.height * (src.width / dst.width);
-        src.y = src.y + ((src.height - newHeight) * 0.5);
+        src.y = src.y + (src.height - newHeight) * 0.5;
         src.height = newHeight;
       }
       if (srcRatio > dstRatio) {
         const newWidth = dst.width * (src.height / dst.height);
-        src.x = src.x + ((src.width - newWidth) * 0.5);
+        src.x = src.x + (src.width - newWidth) * 0.5;
         src.width = newWidth;
       }
     } else {
       if (srcRatio > dstRatio) {
         const newHeight = dst.width * (src.height / src.width);
-        dst.y = dst.y + ((dst.height - newHeight) * 0.5);
+        dst.y = dst.y + (dst.height - newHeight) * 0.5;
         dst.height = newHeight;
       }
       if (srcRatio < dstRatio) {
         const newWidth = dst.height * srcRatio;
-        dst.x = dst.x + ((dst.width - newWidth) * 0.5);
+        dst.x = dst.x + (dst.width - newWidth) * 0.5;
         dst.width = newWidth;
       }
     }
@@ -235,9 +251,8 @@ class Showy {
       rows = Math.ceil(dst.height / tile.height);
       columns = Math.ceil(dst.width / tile.width);
 
-      offsetWidth = ((tile.width * columns) - dst.width) * 0.5;
-      offsetHeight = ((tile.height * rows) - dst.height) * 0.5;
-
+      offsetWidth = (tile.width * columns - dst.width) * 0.5;
+      offsetHeight = (tile.height * rows - dst.height) * 0.5;
     } else {
       rows = Math.floor(dst.height / tile.height);
       columns = Math.floor(dst.width / tile.width);
@@ -250,8 +265,8 @@ class Showy {
 
     for (let i = 0; i < totalTiles; i++) {
       callback({
-        x: (tile.x + (column * tile.width)) - offsetWidth,
-        y: (tile.y + (row * tile.height)) - offsetHeight,
+        x: tile.x + column * tile.width - offsetWidth,
+        y: tile.y + row * tile.height - offsetHeight,
       });
 
       if (column === columns - 1) {
@@ -277,13 +292,15 @@ class Showy {
     tempCanvas.height = video.videoHeight;
     const tempContext = tempCanvas.getContext('2d');
     tempContext.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
-    return tempContext._getImageData(0, 0, video.videoWidth, video.videoHeight).data;
+    return tempContext._getImageData(0, 0, video.videoWidth, video.videoHeight)
+      .data;
   }
 
   _transitionEnded() {
     // console.log('Transition Ended');
   }
 
+  // eslint-disable-next-line
   _videoEnded(video, videoObject) {
     // console.log('Video Ended');
 
@@ -300,6 +317,7 @@ class Showy {
     }
   }
 
+  // eslint-disable-next-line
   _slideLoaded(slide, slideIndex) {
     // console.log('Slide Loaded');
   }
@@ -349,7 +367,6 @@ class Showy {
       this._drawSlides();
 
       window.requestAnimationFrame(this._animate.bind(this));
-
     } catch (error) {
       console.error(error);
     }
@@ -377,8 +394,13 @@ class Showy {
     this._prevContext = this._prevCanvas.getContext('2d');
 
     this._renderCanvas = this._createCanvas();
-    this._renderContext = this._renderCanvas.getContext('webgl') || this._renderCanvas.getContext('experimental-webgl');
-    this._renderContext.pixelStorei(this._renderContext.UNPACK_FLIP_Y_WEBGL, true);
+    this._renderContext =
+      this._renderCanvas.getContext('webgl') ||
+      this._renderCanvas.getContext('experimental-webgl');
+    this._renderContext.pixelStorei(
+      this._renderContext.UNPACK_FLIP_Y_WEBGL,
+      true
+    );
 
     this.container.appendChild(this._renderCanvas);
   }
@@ -412,26 +434,49 @@ class Showy {
   }
 
   _getTransition(currentSlideTransition = {}, nextPrevSlideTransition = {}) {
-    const _currentSlideTransition = _.merge({}, this.config.transition, currentSlideTransition || {});
-    const _nextPrevSlideTransition = _.merge({}, this.config.transition, nextPrevSlideTransition || {});
+    const _currentSlideTransition = _.merge(
+      {},
+      this.config.transition,
+      currentSlideTransition || {}
+    );
+    const _nextPrevSlideTransition = _.merge(
+      {},
+      this.config.transition,
+      nextPrevSlideTransition || {}
+    );
     if (_currentSlideTransition.name === TRANSITION_RANDOM) {
       _currentSlideTransition.glsl = _.sample(this.config.transitions);
     } else {
-      _currentSlideTransition.glsl = this.config.transitions[_currentSlideTransition.name];
+      _currentSlideTransition.glsl = this.config.transitions[
+        _currentSlideTransition.name
+      ];
     }
     if (_nextPrevSlideTransition.name === TRANSITION_RANDOM) {
       _nextPrevSlideTransition.glsl = _.sample(this.config.transitions);
     } else {
-      _nextPrevSlideTransition.glsl = this.config.transitions[_nextPrevSlideTransition.name];
+      _nextPrevSlideTransition.glsl = this.config.transitions[
+        _nextPrevSlideTransition.name
+      ];
     }
-    const transition = _currentSlideTransition.priority >= _nextPrevSlideTransition.priority ? _currentSlideTransition : _nextPrevSlideTransition;
+    const transition =
+      _currentSlideTransition.priority >= _nextPrevSlideTransition.priority
+        ? _currentSlideTransition
+        : _nextPrevSlideTransition;
     return transition;
   }
 
   _drawSlides(reset) {
     const currentSlide = this._slides[this._currentSlideIndex];
-    const nextSlide = this._slides[this._currentSlideIndex === this._slides.length - 1 ? 0 : this._currentSlideIndex + 1];
-    const prevSlide = this._slides[this._currentSlideIndex === 0 ? this._slides.length - 1 : this._currentSlideIndex - 1];
+    const nextSlide = this._slides[
+      this._currentSlideIndex === this._slides.length - 1
+        ? 0
+        : this._currentSlideIndex + 1
+    ];
+    const prevSlide = this._slides[
+      this._currentSlideIndex === 0
+        ? this._slides.length - 1
+        : this._currentSlideIndex - 1
+    ];
 
     let transitionOptions;
 
@@ -442,10 +487,12 @@ class Showy {
 
     // Only render if we need to ie. only during transitions
     // or if the current slide contains video(s)
-    if (!currentSlide._hasVideo &&
+    if (
+      !currentSlide._hasVideo &&
       currentSlide._rendered &&
       !this._transitionInProgress() &&
-      this._currentSlideIndex === this._transitionToIndex) {
+      this._currentSlideIndex === this._transitionToIndex
+    ) {
       return;
     }
 
@@ -462,30 +509,63 @@ class Showy {
     }
 
     // Transition is already running or has been triggered by a change of _transitionToIndex
-    if (this._transitionToIndex !== this._currentSlideIndex || this._transitionInProgress()) {
+    if (
+      this._transitionToIndex !== this._currentSlideIndex ||
+      this._transitionInProgress()
+    ) {
       // We're heading to the next slide (or the transition has been cancelled halfway through)
-      if ((this._transitionToIndex !== this._currentSlideIndex && this._transitionDirection === TRANSITION_FORWARDS) ||
-        (this._transitionToIndex === this._currentSlideIndex && this._transitionDirection === TRANSITION_BACKWARDS)) {
-        this._fromTexture = createTexture(this._renderContext, this._currentCanvas);
+      if (
+        (this._transitionToIndex !== this._currentSlideIndex &&
+          this._transitionDirection === TRANSITION_FORWARDS) ||
+        (this._transitionToIndex === this._currentSlideIndex &&
+          this._transitionDirection === TRANSITION_BACKWARDS)
+      ) {
+        this._fromTexture = createTexture(
+          this._renderContext,
+          this._currentCanvas
+        );
         this._toTexture = createTexture(this._renderContext, this._nextCanvas);
-        transitionOptions = this._getTransition(currentSlide.transitionNext, nextSlide.transitionPrev);
+        transitionOptions = this._getTransition(
+          currentSlide.transitionNext,
+          nextSlide.transitionPrev
+        );
       }
       // We're heading to the previous slide (or the transition has been cancelled halfway through)
-      if ((this._transitionToIndex !== this._currentSlideIndex && this._transitionDirection === TRANSITION_BACKWARDS) ||
-        (this._transitionToIndex === this._currentSlideIndex && this._transitionDirection === TRANSITION_FORWARDS)) {
-        this._fromTexture = createTexture(this._renderContext, this._prevCanvas);
-        this._toTexture = createTexture(this._renderContext, this._currentCanvas);
-        transitionOptions = this._getTransition(currentSlide.transitionPrev, prevSlide.transitionNext);
+      if (
+        (this._transitionToIndex !== this._currentSlideIndex &&
+          this._transitionDirection === TRANSITION_BACKWARDS) ||
+        (this._transitionToIndex === this._currentSlideIndex &&
+          this._transitionDirection === TRANSITION_FORWARDS)
+      ) {
+        this._fromTexture = createTexture(
+          this._renderContext,
+          this._prevCanvas
+        );
+        this._toTexture = createTexture(
+          this._renderContext,
+          this._currentCanvas
+        );
+        transitionOptions = this._getTransition(
+          currentSlide.transitionPrev,
+          prevSlide.transitionNext
+        );
       }
-
     } else {
       // We're not transitioning so just rerender current slide (only if needed)
-      this._fromTexture = createTexture(this._renderContext, this._currentCanvas);
+      this._fromTexture = createTexture(
+        this._renderContext,
+        this._currentCanvas
+      );
       this._toTexture = this._fromTexture;
     }
 
-    if (transitionOptions && !this._transitionInProgress() &&
-      (!this._transitionOptions || this._transitionOptions.name !== transitionOptions.name || this._transitionOptions.name === TRANSITION_RANDOM)) {
+    if (
+      transitionOptions &&
+      !this._transitionInProgress() &&
+      (!this._transitionOptions ||
+        this._transitionOptions.name !== transitionOptions.name ||
+        this._transitionOptions.name === TRANSITION_RANDOM)
+    ) {
       // Update transition options if required
       this._transitionOptions = transitionOptions;
 
@@ -498,18 +578,28 @@ class Showy {
 
     if (this._transitionOptions) {
       if (!this._transition) {
-        this._transition = createTransition(this._renderContext, this._transitionOptions.glsl.shader);
+        this._transition = createTransition(
+          this._renderContext,
+          this._transitionOptions.glsl.shader
+        );
       }
 
-      if (this._transitionToIndex !== this._currentSlideIndex || this._transitionInProgress()) {
+      if (
+        this._transitionToIndex !== this._currentSlideIndex ||
+        this._transitionInProgress()
+      ) {
         // Increment the transition progress depending on the direction
         const progressIncrement = 60 / this._transitionOptions.duration;
 
         if (this._transitionDirection === TRANSITION_FORWARDS) {
-          this._transitionProgress = this._transitionInProgress() ? this._transitionProgress + progressIncrement : progressIncrement;
+          this._transitionProgress = this._transitionInProgress()
+            ? this._transitionProgress + progressIncrement
+            : progressIncrement;
         }
         if (this._transitionDirection === TRANSITION_BACKWARDS) {
-          this._transitionProgress = this._transitionInProgress() ? this._transitionProgress - progressIncrement : 1 - progressIncrement;
+          this._transitionProgress = this._transitionInProgress()
+            ? this._transitionProgress - progressIncrement
+            : 1 - progressIncrement;
         }
       }
 
@@ -521,14 +611,23 @@ class Showy {
         this._transitionProgress = 0;
       }
 
-      const easedTransitionProgress = eases[this._transitionOptions.ease](this._transitionProgress);
+      const easedTransitionProgress = eases[this._transitionOptions.ease](
+        this._transitionProgress
+      );
 
-      this._transition.render(easedTransitionProgress, this._fromTexture, this._toTexture, this._transitionOptions.glsl.uniforms);
-
+      this._transition.render(
+        easedTransitionProgress,
+        this._fromTexture,
+        this._toTexture,
+        this._transitionOptions.glsl.uniforms
+      );
     } else {
       // No transition specified, just render
       if (!this._transition) {
-        this._transition = createTransition(this._renderContext, TRANSITION_NONE_SHADER);
+        this._transition = createTransition(
+          this._renderContext,
+          TRANSITION_NONE_SHADER
+        );
       }
 
       this._transition.render(1, this._fromTexture, this._toTexture);
@@ -548,7 +647,10 @@ class Showy {
     }
 
     // Transition is finished
-    if (this._transitionToIndex !== this._currentSlideIndex && !this._transitionInProgress()) {
+    if (
+      this._transitionToIndex !== this._currentSlideIndex &&
+      !this._transitionInProgress()
+    ) {
       this._currentSlideIndex = this._transitionToIndex;
 
       this._clearContext(this._currentContext);
@@ -562,14 +664,22 @@ class Showy {
   }
 
   _isType(object, type) {
-    return object.type === type
-    || object[type]
-    || (this._regExp[type] && object.url && this._regExp[type].test(object.url))
-    || (this._regExp[type] && object.sources && this._regExp[type].test(object.sources[0].url));
+    return (
+      object.type === type ||
+      object[type] ||
+      (this._regExp[type] &&
+        object.url &&
+        this._regExp[type].test(object.url)) ||
+      (this._regExp[type] &&
+        object.sources &&
+        this._regExp[type].test(object.sources[0].url))
+    );
   }
 
   _drawSlide(context, slide) {
-    slide._hasVideo = slide.content.filter(object => this._isType(object, 'video')).length > 0;
+    slide._hasVideo =
+      slide.content.filter((object) => this._isType(object, 'video')).length >
+      0;
     slide._rendered = false;
     slide._ready = false;
     if (!slide._loaded) {
@@ -599,7 +709,12 @@ class Showy {
       return;
     }
 
-    const callback = this._drawSlideContent.bind(this, context, slide, index + 1);
+    const callback = this._drawSlideContent.bind(
+      this,
+      context,
+      slide,
+      index + 1
+    );
 
     if (this._isType(object, 'video')) {
       this._drawVideo(context, object, callback);
@@ -625,7 +740,9 @@ class Showy {
     position.forEach((val, index) => {
       let pixel;
 
-      let length = [this._width, this._height, this._width, this._height][index];
+      let length = [this._width, this._height, this._width, this._height][
+        index
+      ];
 
       length /= scale;
 
@@ -633,7 +750,7 @@ class Showy {
         if (index < 2) {
           pixel = val * length;
         } else {
-          pixel = (val * length) - _pixels[index - 2];
+          pixel = val * length - _pixels[index - 2];
         }
       } else if (index < 2) {
         pixel = val;
@@ -665,12 +782,12 @@ class Showy {
     const image = new Image();
     image.crossOrigin = 'Anonymous';
     image.src = url;
-    image.onerror = (event) => {
+    image.onerror = () => {
       this.destroy();
 
       throw new Error('Image failed to load', url);
     };
-    image.onload = (event) => {
+    image.onload = () => {
       this._imageMap[url] = image;
       callback(image);
     };
@@ -687,33 +804,41 @@ class Showy {
       return;
     }
 
-    pica.resizeBuffer({
-      src: Showy._getImageData(image, src.x, src.y, src.width, src.height),
-      width: src.width,
-      height: src.height,
-      toWidth: dst.width,
-      toHeight: dst.height,
-      // quality: 1,
-      alpha: false,
-      unsharpAmount: 0,
-      unsharpRadius: 0.5,
-      unsharpThreshold: 0,
-    })
-      .then((buffer) => {
-        if (buffer.length) {
-          this._resizedImageData = new ImageData(new Uint8ClampedArray(buffer), dst.width, dst.height);
+    pica
+      .resizeBuffer({
+        src: Showy._getImageData(image, src.x, src.y, src.width, src.height),
+        width: src.width,
+        height: src.height,
+        toWidth: dst.width,
+        toHeight: dst.height,
+        // quality: 1,
+        alpha: false,
+        unsharpAmount: 0,
+        unsharpRadius: 0.5,
+        unsharpThreshold: 0,
+      })
+      .then(
+        (buffer) => {
+          if (buffer.length) {
+            this._resizedImageData = new ImageData(
+              new Uint8ClampedArray(buffer),
+              dst.width,
+              dst.height
+            );
 
-          this._slideContentMap[resizedImageKey] = this._resizedImageData;
+            this._slideContentMap[resizedImageKey] = this._resizedImageData;
 
-          callback(this._slideContentMap[resizedImageKey]);
+            callback(this._slideContentMap[resizedImageKey]);
 
-          return;
+            return;
+          }
+
+          console.error(new Error('Resize failed'), image.src, src, dst);
+        },
+        (error) => {
+          console.error(error);
         }
-
-        console.error(new Error('Resize failed'), image.src, src, dst);
-      }, (error) => {
-        console.error(error);
-      });
+      );
   }
 
   _drawText(context, object, callback) {
@@ -744,16 +869,33 @@ class Showy {
       if (object.tile) {
         let tile = Showy._getTile(dst, object.tile.size);
 
-        const updatedCoords = Showy._updateCoords(src, tile, object.tile.scaleMode);
+        const updatedCoords = Showy._updateCoords(
+          src,
+          tile,
+          object.tile.scaleMode
+        );
 
-        this._resizeImage(image, updatedCoords.src, updatedCoords.dst, (resizedImageData) => {
+        this._resizeImage(
+          image,
+          updatedCoords.src,
+          updatedCoords.dst,
+          (resizedImageData) => {
+            Showy._drawTiles(
+              dst,
+              updatedCoords.dst,
+              object.scaleMode,
+              (tileCoord) => {
+                context.putImageData(
+                  resizedImageData,
+                  tileCoord.x,
+                  tileCoord.y
+                );
+              }
+            );
 
-          Showy._drawTiles(dst, updatedCoords.dst, object.scaleMode, (tileCoord) => {
-            context.putImageData(resizedImageData, tileCoord.x, tileCoord.y);
-          });
-
-          callback();
-        });
+            callback();
+          }
+        );
 
         return;
       }
@@ -773,7 +915,8 @@ class Showy {
 
   _getVideo(object, callback = () => {}) {
     const url = typeof object.url === 'function' ? object.url() : object.url;
-    const sources = typeof object.sources === 'function' ? object.sources() : object.sources;
+    const sources =
+      typeof object.sources === 'function' ? object.sources() : object.sources;
 
     const videoKey = JSON.stringify(url || sources);
 
@@ -803,7 +946,6 @@ class Showy {
       if (url) {
         video.poster = url;
       }
-
     } else if (url) {
       video.src = url;
     }
@@ -845,11 +987,30 @@ class Showy {
       if (object.tile) {
         let tile = Showy._getTile(dst, object.tile.size);
 
-        const updatedCoords = Showy._updateCoords(src, tile, object.tile.scaleMode);
+        const updatedCoords = Showy._updateCoords(
+          src,
+          tile,
+          object.tile.scaleMode
+        );
 
-        Showy._drawTiles(dst, updatedCoords.dst, object.scaleMode, (tileCoord) => {
-          context.drawImage(video, src.x, src.y, src.width, src.height, tileCoord.x, tileCoord.y, tile.width, tile.height);
-        });
+        Showy._drawTiles(
+          dst,
+          updatedCoords.dst,
+          object.scaleMode,
+          (tileCoord) => {
+            context.drawImage(
+              video,
+              src.x,
+              src.y,
+              src.width,
+              src.height,
+              tileCoord.x,
+              tileCoord.y,
+              tile.width,
+              tile.height
+            );
+          }
+        );
 
         callback();
 
@@ -861,7 +1022,17 @@ class Showy {
       src = updatedCoords.src;
       dst = updatedCoords.dst;
 
-      context.drawImage(video, src.x, src.y, src.width, src.height, dst.x, dst.y, dst.width, dst.height);
+      context.drawImage(
+        video,
+        src.x,
+        src.y,
+        src.width,
+        src.height,
+        dst.x,
+        dst.y,
+        dst.width,
+        dst.height
+      );
 
       callback();
     });

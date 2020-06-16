@@ -2,17 +2,19 @@
   "name": "showy",
   "version": "0.1.4",
   "description": "Ostentatious, canvas-based presentations",
-  "main": "dist/showy.min.js",
+  "source": "src/showy.js",
+  "main": "dist/showy.js",
+  "module": "dist/showy.module.js",
+  "unpkg": "dist/showy.umd.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/homerjam/showy"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "rollup -c; ENV=prod rollup -c",
-    "dev": "ENV=dev rollup -c -w"
+    "build": "microbundle --globals lodash=_ --external pica=pica,gl-texture2d=createTexture,glsl-transition=createTransition,eases=eases",
+    "dev": "microbundle watch"
   },
-  "author": "homerjam <jameshomer85@gmail.com>",
+  "author": "James Homer <hello@homerjam.es>",
   "license": "MIT",
   "dependencies": {
     "eases": "^1.0.8",
@@ -20,25 +22,15 @@
     "glsl-transition": "^1.0.2",
     "glsl-transitions": "^2017.4.19",
     "lodash": "^4.17.4",
-    "pica": "^4.0.1"
+    "pica": "^5.3.0"
   },
   "devDependencies": {
-    "babel": "^6.23.0",
-    "babel-core": "^6.26.0",
-    "babel-eslint": "^8.0.2",
-    "babel-loader": "^7.1.2",
-    "babel-polyfill": "^6.26.0",
-    "babel-preset-env": "^1.6.1",
-    "eslint": "^4.3.0",
-    "eslint-config-airbnb-base": "^12.1.0",
-    "eslint-plugin-import": "^2.7.0",
-    "rollup-plugin-babel": "^3.0.2",
-    "rollup-plugin-commonjs": "^8.2.6",
-    "rollup-plugin-livereload": "^0.6.0",
-    "rollup-plugin-node-resolve": "^3.0.0",
-    "rollup-plugin-serve": "^0.4.2",
-    "rollup-plugin-uglify": "^2.0.1",
-    "rollup-watch": "^4.3.1",
-    "uglify-es": "^3.2.0"
+    "@babel/preset-env": "^7.10.2",
+    "babel-eslint": "^10.1.0",
+    "eslint": "^7.2.0",
+    "eslint-config-prettier": "^6.11.0",
+    "eslint-plugin-prettier": "^3.1.4",
+    "microbundle": "^0.12.1",
+    "prettier": "^2.0.5"
   }
 }

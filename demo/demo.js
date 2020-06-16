@@ -1,10 +1,16 @@
 /* eslint-env browser */
+/* globals GlslTransitions,showy */
 
 localStorage.debug = 'showy:*';
 
 // http://stackoverflow.com/questions/2970525/converting-any-string-into-camel-case
-function camelize (str) {
-  return str.replace(/_/g, ' ').replace(/(?:^\w|[A-Z]|\b\w)/g, (letter, index) => (index === 0 ? letter.toLowerCase() : letter.toUpperCase())).replace(/\s+/g, '');
+function camelize(str) {
+  return str
+    .replace(/_/g, ' ')
+    .replace(/(?:^\w|[A-Z]|\b\w)/g, (letter, index) =>
+      index === 0 ? letter.toLowerCase() : letter.toUpperCase()
+    )
+    .replace(/\s+/g, '');
 }
 
 var glslTransitions = {};
@@ -93,9 +99,7 @@ var config = {
       content: [
         {
           // url: 'demo/assets/wowowl.mp4',
-          sources: [
-            { url: 'demo/assets/wowowl.mp4', type: 'video/mp4' },
-          ],
+          sources: [{ url: 'demo/assets/wowowl.mp4', type: 'video/mp4' }],
           position: [0.4, 0.4, 0.6, 0.6],
           scaleMode: 'fill',
         },
@@ -221,21 +225,17 @@ var config = {
 
 console.log('config', config);
 
-// console.log(Showy);
+var myShowy = new showy(config);
 
-var showy = new Showy(config);
-
-console.log(showy);
-
-document.body.addEventListener('click', (event) => {
-  showy.nextSlide();
+document.body.addEventListener('click', () => {
+  myShowy.nextSlide();
 });
 
 document.body.addEventListener('keydown', (event) => {
   if (event.keyCode === 39) {
-    showy.nextSlide();
+    myShowy.nextSlide();
   }
   if (event.keyCode === 37) {
-    showy.prevSlide();
+    myShowy.prevSlide();
   }
 });
