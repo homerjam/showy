@@ -11,7 +11,7 @@
     "url": "https://github.com/homerjam/showy"
   },
   "scripts": {
-    "build": "microbundle --globals lodash=_ --external pica=pica,gl-texture2d=createTexture,glsl-transition=createTransition,eases=eases",
+    "build": "microbundle --globals lodash=_ --external pica=Pica,gl-texture2d=createTexture,glsl-transition=createTransition,eases=eases",
     "dev": "microbundle watch"
   },
   "author": "James Homer <hello@homerjam.es>",

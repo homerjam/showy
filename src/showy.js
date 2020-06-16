@@ -14,7 +14,7 @@
  * - fallback for no-webgl (use gsap?)
  */
 
-import pica from 'pica';
+import Pica from 'pica';
 import createTexture from 'gl-texture2d';
 import createTransition from 'glsl-transition';
 import eases from 'eases';
@@ -51,6 +51,8 @@ if (window.HTMLMediaElement) {
     },
   });
 }
+
+const pica = Pica();
 
 class Showy {
   constructor(config) {
