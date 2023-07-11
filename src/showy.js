@@ -53,6 +53,7 @@ class Showy {
       container: 'body',
       slides: [],
       autoplay: false,
+      resize: false,
       slideDuration: 3000,
       transitions,
       transition: {
@@ -831,41 +832,53 @@ class Showy {
       return;
     }
 
-    pica
-      .resizeBuffer({
-        src: Showy._getImageData(image, src.x, src.y, src.width, src.height),
-        width: src.width,
-        height: src.height,
-        toWidth: dst.width,
-        toHeight: dst.height,
-        // quality: 1,
-        alpha: false,
-        unsharpAmount: 0,
-        unsharpRadius: 0.5,
-        unsharpThreshold: 0,
-      })
-      .then(
-        (buffer) => {
-          if (buffer.length) {
-            this._resizedImageData = new ImageData(
-              new Uint8ClampedArray(buffer),
-              dst.width,
-              dst.height
-            );
+    if (this.config.resize) {
+      pica
+        .resizeBuffer({
+          src: Showy._getImageData(image, src.x, src.y, src.width, src.height),
+          width: src.width,
+          height: src.height,
+          toWidth: dst.width,
+          toHeight: dst.height,
+          // quality: 1,
+          alpha: false,
+          unsharpAmount: 0,
+          unsharpRadius: 0.5,
+          unsharpThreshold: 0,
+        })
+        .then(
+          (buffer) => {
+            if (buffer.length) {
+              this._resizedImageData = new ImageData(
+                new Uint8ClampedArray(buffer),
+                dst.width,
+                dst.height
+              );
 
-            this._slideContentMap[resizedImageKey] = this._resizedImageData;
+              this._slideContentMap[resizedImageKey] = this._resizedImageData;
 
-            callback(this._slideContentMap[resizedImageKey]);
+              callback(this._slideContentMap[resizedImageKey]);
 
-            return;
+              return;
+            }
+
+            console.error(new Error('Resize failed'), image.src, src, dst);
+          },
+          (error) => {
+            console.error(error);
           }
-
-          console.error(new Error('Resize failed'), image.src, src, dst);
-        },
-        (error) => {
-          console.error(error);
-        }
+        );
+    } else {
+      this._slideContentMap[resizedImageKey] = Showy._getImageData(
+        image,
+        src.x,
+        src.y,
+        src.width,
+        src.height
       );
+
+      callback(this._slideContentMap[resizedImageKey]);
+    }
   }
 
   _drawText(context, object, callback) {
