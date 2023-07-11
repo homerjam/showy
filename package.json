@@ -12,15 +12,17 @@
   },
   "scripts": {
     "build": "microbundle --globals lodash=_ --external pica=Pica,gl-texture2d=createTexture,glsl-transition=createTransition,eases=eases",
-    "dev": "microbundle watch"
+    "dev": "microbundle watch --globals lodash=_ --external pica=Pica,gl-texture2d=createTexture,glsl-transition=createTransition,eases=eases",
+    "start": "npx http-server"
   },
   "author": "James Homer <hello@homerjam.es>",
   "license": "MIT",
   "dependencies": {
+    "buffer": "^6.0.3",
     "eases": "^1.0.8",
     "gl-texture2d": "^2.1.0",
-    "glsl-transition": "^1.0.2",
-    "glsl-transitions": "^2017.4.19",
+    "gl-transition": "^1.13.0",
+    "gl-transitions": "^1.43.0",
     "lodash": "^4.17.4",
     "pica": "^5.3.0"
   },

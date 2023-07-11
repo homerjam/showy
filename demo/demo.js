@@ -1,5 +1,5 @@
 /* eslint-env browser */
-/* globals GlslTransitions,showy */
+/* globals GLTransitions,showy */
 
 localStorage.debug = 'showy:*';
 
@@ -15,11 +15,8 @@ function camelize(str) {
 
 var glslTransitions = {};
 
-GlslTransitions.forEach((transition) => {
-  glslTransitions[camelize(transition.name)] = {
-    shader: transition.glsl,
-    uniforms: transition.uniforms,
-  };
+GLTransitions.forEach((transition) => {
+  glslTransitions[camelize(transition.name)] = transition;
 });
 
 console.log('glslTransitions', glslTransitions);
@@ -46,7 +43,7 @@ var config = {
         return this.content[0];
       },
       transitionNext: {
-        name: 'warpfade', // name/id/key/slug
+        name: 'crosswarp', // name/id/key/slug
         duration: 2000,
         priority: 1,
       },
@@ -92,8 +89,8 @@ var config = {
         return this.content[0];
       },
       transitionNext: {
-        name: 'none',
-        duration: 0,
+        name: 'slideLeft',
+        duration: 800,
       },
       background: '#FFFFFF',
       content: [

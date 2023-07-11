@@ -1,4 +1,4 @@
-var glslTransitions = require('glsl-transitions/build/glsl-transitions');
+var glslTransitions = require('gl-transitions/build/glsl-transitions');
 
 // http://stackoverflow.com/questions/2970525/converting-any-string-into-camel-case
 function camelize(str) {
@@ -13,8 +13,5 @@ function camelize(str) {
 window.glslTransitions = {};
 
 glslTransitions.forEach(function (transition) {
-  window.glslTransitions[camelize(transition.name)] = {
-    shader: transition.glsl,
-    uniforms: transition.uniforms,
-  };
+  window.glslTransitions[camelize(transition.name)] = transition;
 });

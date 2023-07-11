@@ -16,7 +16,7 @@
 
 import Pica from 'pica';
 import createTexture from 'gl-texture2d';
-import createTransition from 'glsl-transition';
+import createTransition from 'gl-transition';
 import eases from 'eases';
 import transitions from './transitions';
 
@@ -24,19 +24,12 @@ const TRANSITION_FORWARDS = 'forwards';
 const TRANSITION_BACKWARDS = 'backwards';
 const TRANSITION_RANDOM = 'random';
 
-const TRANSITION_NONE_SHADER = `
-  #ifdef GL_ES
-  precision highp float;
-  #endif
-  uniform sampler2D from, to;
-  uniform float progress;
-  uniform vec2 resolution;
-
-  void main() {
-    vec2 p = gl_FragCoord.xy / resolution.xy;
-    gl_FragColor = texture2D(to, p);
-  }
-`;
+const TRANSITION_NONE = {
+  name: 'none',
+  paramsTypes: {},
+  defaultParams: {},
+  glsl: 'vec4 transition(vec2 p) {\n return getToColor(p);\n }',
+};
 
 // Polyfill playing status
 if (window.HTMLMediaElement) {
@@ -403,6 +396,13 @@ class Showy {
       this._renderContext.UNPACK_FLIP_Y_WEBGL,
       true
     );
+    const buffer = this._renderContext.createBuffer();
+    this._renderContext.bindBuffer(this._renderContext.ARRAY_BUFFER, buffer);
+    this._renderContext.bufferData(
+      this._renderContext.ARRAY_BUFFER,
+      new Float32Array([-1, -1, -1, 4, 4, -1]), // see a-big-triangle
+      this._renderContext.STATIC_DRAW
+    );
 
     this.container.appendChild(this._renderCanvas);
   }
@@ -449,16 +449,14 @@ class Showy {
     if (_currentSlideTransition.name === TRANSITION_RANDOM) {
       _currentSlideTransition.glsl = _.sample(this.config.transitions);
     } else {
-      _currentSlideTransition.glsl = this.config.transitions[
-        _currentSlideTransition.name
-      ];
+      _currentSlideTransition.glsl =
+        this.config.transitions[_currentSlideTransition.name];
     }
     if (_nextPrevSlideTransition.name === TRANSITION_RANDOM) {
       _nextPrevSlideTransition.glsl = _.sample(this.config.transitions);
     } else {
-      _nextPrevSlideTransition.glsl = this.config.transitions[
-        _nextPrevSlideTransition.name
-      ];
+      _nextPrevSlideTransition.glsl =
+        this.config.transitions[_nextPrevSlideTransition.name];
     }
     const transition =
       _currentSlideTransition.priority >= _nextPrevSlideTransition.priority
@@ -469,16 +467,18 @@ class Showy {
 
   _drawSlides(reset) {
     const currentSlide = this._slides[this._currentSlideIndex];
-    const nextSlide = this._slides[
-      this._currentSlideIndex === this._slides.length - 1
-        ? 0
-        : this._currentSlideIndex + 1
-    ];
-    const prevSlide = this._slides[
-      this._currentSlideIndex === 0
-        ? this._slides.length - 1
-        : this._currentSlideIndex - 1
-    ];
+    const nextSlide =
+      this._slides[
+        this._currentSlideIndex === this._slides.length - 1
+          ? 0
+          : this._currentSlideIndex + 1
+      ];
+    const prevSlide =
+      this._slides[
+        this._currentSlideIndex === 0
+          ? this._slides.length - 1
+          : this._currentSlideIndex - 1
+      ];
 
     let transitionOptions;
 
@@ -580,9 +580,15 @@ class Showy {
 
     if (this._transitionOptions) {
       if (!this._transition) {
+        if (!this._transitionOptions.glsl) {
+          throw new Error(
+            `Missing transition: ${this._transitionOptions.name}`
+          );
+        }
+
         this._transition = createTransition(
           this._renderContext,
-          this._transitionOptions.glsl.shader
+          this._transitionOptions.glsl
         );
       }
 
@@ -617,22 +623,22 @@ class Showy {
         this._transitionProgress
       );
 
-      this._transition.render(
+      this._transition.draw(
         easedTransitionProgress,
         this._fromTexture,
         this._toTexture,
-        this._transitionOptions.glsl.uniforms
+        this._transitionOptions.glsl.defaultParams
       );
     } else {
       // No transition specified, just render
       if (!this._transition) {
         this._transition = createTransition(
           this._renderContext,
-          TRANSITION_NONE_SHADER
+          TRANSITION_NONE
         );
       }
 
-      this._transition.render(1, this._fromTexture, this._toTexture);
+      this._transition.draw(1, this._fromTexture, this._toTexture);
     }
 
     // We have rendered the current slide for the first time
