@@ -1,6 +1,6 @@
 {
   "name": "showy",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Ostentatious, canvas-based presentations",
   "source": "src/showy.js",
   "main": "dist/showy.js",
