@@ -832,7 +832,11 @@ class Showy {
       return;
     }
 
-    if (this.config.resize) {
+    if (
+      this.config.resize ||
+      src.width < dst.width ||
+      src.height < dst.height
+    ) {
       pica
         .resizeBuffer({
           src: Showy._getImageData(image, src.x, src.y, src.width, src.height),
@@ -869,10 +873,10 @@ class Showy {
           }
         );
     } else {
-      this._slideContentMap[resizedImageKey] = Showy._getImageData(
-        image,
-        src.x,
-        src.y,
+      this._slideContentMap[resizedImageKey] = new ImageData(
+        new Uint8ClampedArray(
+          Showy._getImageData(image, src.x, src.y, src.width, src.height)
+        ),
         src.width,
         src.height
       );

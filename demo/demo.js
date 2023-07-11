@@ -24,6 +24,7 @@ console.log('glslTransitions', glslTransitions);
 var config = {
   container: document.querySelector('.container'),
   autoplay: true,
+  resize: false,
   slideDuration: 2000,
   transitions: glslTransitions,
   // transition: {
@@ -81,6 +82,22 @@ var config = {
           color: 'rgb(255, 255, 255)',
           position: [0.5, 0.65],
           maxWidth: 0.5,
+        },
+      ],
+    },
+    {
+      duration: 500,
+      transitionNext: {
+        name: 'bowTieHorizontal',
+        duration: 1000,
+      },
+      background: '#000000',
+      content: [
+        {
+          type: 'image',
+          url: 'demo/assets/highresrollsafe.jpg',
+          position: [0, 0, 1, 1],
+          scaleMode: 'fill',
         },
       ],
     },
