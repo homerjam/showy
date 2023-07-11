@@ -5,6 +5,7 @@ const transitions = {
     defaultParams: {},
     glsl: 'vec4 transition(vec2 p) {\n return getToColor(p);\n }',
   },
+
   // bounce: {
   //   name: 'Bounce',
   //   paramsTypes: {
@@ -983,70 +984,69 @@ const transitions = {
   // },
 
   crossfade: {
-    shader: `
-      #ifdef GL_ES
-      precision highp float;
-      #endif
-      uniform sampler2D from, to;
-      uniform float progress;
-      uniform vec2 resolution;
+    name: 'crossfade',
+    paramsTypes: {},
+    defaultParams: {},
+    glsl: `
+      #define SHADER_NAME crossfade
 
-      void main() {
-        vec2 p = gl_FragCoord.xy / resolution.xy;
-        gl_FragColor = mix(texture2D(from, p), texture2D(to, p), progress);
+      vec4 transition (vec2 uv) {
+        return mix(
+          getFromColor(uv),
+          getToColor(uv),
+          progress
+        );
       }
     `,
-    uniforms: {},
   },
   circleInOut: {
-    shader: `
-      #ifdef GL_ES
-      precision highp float;
-      #endif
-      uniform sampler2D from, to;
-      uniform float progress;
-      uniform vec2 resolution;
+    name: 'circleInOut',
+    paramsTypes: {
+      center: 'vec2',
+      backColor: 'vec3',
+    },
+    defaultParams: {
+      center: [0.5, 0.5],
+      backColor: [0.0, 0.0, 0.0],
+    },
+    glsl: `
+      #define SHADER_NAME circleInOut
 
-      float maxRadius = resolution.x + resolution.y;
+      uniform vec2 center; // = vec2(0.5, 0.5);
+      uniform vec3 backColor; // = vec3(0.0, 0.0, 0.0);
 
-      void main() {
-        vec2 p = gl_FragCoord.xy / resolution.xy;
+      vec4 transition (vec2 uv) {
+        float distance = length(uv - center);
+        float radius = sqrt(8.0) * abs(progress - 0.5);
 
-        float distX = gl_FragCoord.x - resolution.x / 2.0;
-        float distY = gl_FragCoord.y - resolution.y / 2.0;
-        float dist = sqrt(distX * distX + distY * distY);
-
-        float step = 2.0 * abs(progress - 0.5);
-        step = step * step * step;
-
-        if (dist < step * maxRadius)
-        {
-          if (progress < 0.5)
-            gl_FragColor = texture2D(from, p);
-          else
-            gl_FragColor = texture2D(to, p);
+        if (distance > radius) {
+          return vec4(backColor, 1.0);
         }
-        else
-          gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+        else {
+          if (progress < 0.5) return getFromColor(uv);
+          else return getToColor(uv);
+        }
       }
     `,
-    uniforms: {},
   },
   splitVertical: {
-    shader: `
-      #ifdef GL_ES
-      precision highp float;
-      #endif
+    name: 'splitVertical',
+    paramsTypes: {
+      reflection: 'float',
+      perspective: 'float',
+      depth: 'float',
+    },
+    defaultParams: {
+      reflection: 0,
+      perspective: 0,
+      depth: 1,
+    },
+    glsl: `
+      #define SHADER_NAME splitVertical
 
-      // General parameters
-      uniform sampler2D from;
-      uniform sampler2D to;
-      uniform float progress;
-      uniform vec2 resolution;
-
-      uniform float reflection;
-      uniform float perspective;
-      uniform float depth;
+      uniform float reflection; // = 0.0
+      uniform float perspective; // = 0.0
+      uniform float depth; // = 1.0
 
       const vec4 black = vec4(0.0, 0.0, 0.0, 1.0);
       const vec2 boundMin = vec2(0.0, 0.0);
@@ -1063,18 +1063,18 @@ const transitions = {
       vec4 bgColor (vec2 p, vec2 pto) {
         vec4 c = black;
         pto = project(pto);
+
         if (inBounds(pto)) {
-          c += mix(black, texture2D(to, pto), reflection * mix(1.0, 0.0, pto.y));
+          c += mix(black, getToColor(pto), reflection * mix(1.0, 0.0, pto.y));
         }
+
         return c;
       }
 
-      void main() {
-        vec2 p = gl_FragCoord.xy / resolution.xy;
-
+      vec4 transition (vec2 p) {
         vec2 pfr = vec2(-1.), pto = vec2(-1.);
-
         float middleSlit = 2.0 * abs(p.x-0.5) - progress;
+
         if (middleSlit > 0.0) {
           pfr = p + (p.x > 0.5 ? -1.0 : 1.0) * vec2(0.5*progress, 0.0);
           float d = 1.0/(1.0+perspective*progress*(1.0-middleSlit));
@@ -1087,252 +1087,112 @@ const transitions = {
         pto = (p + vec2(-0.5, -0.5)) * vec2(size, size) + vec2(0.5, 0.5);
 
         if (inBounds(pfr)) {
-          gl_FragColor = texture2D(from, pfr);
+          return getFromColor(pfr);
         }
         else if (inBounds(pto)) {
-          gl_FragColor = texture2D(to, pto);
+          return getToColor(pto);
         }
         else {
-          gl_FragColor = bgColor(p, pto);
+          return bgColor(p, pto);
         }
       }
     `,
-    uniforms: {
-      reflection: 0,
-      perspective: 0,
-      depth: 1,
-    },
   },
   slideUp: {
-    shader: `
-      #ifdef GL_ES
-      precision highp float;
-      #endif
-      uniform sampler2D from, to;
-      uniform float progress;
-      uniform vec2 resolution;
+    name: 'slideUp',
+    paramsTypes: {
+      direction: 'vec2',
+    },
+    defaultParams: {
+      direction: [0, -1],
+    },
+    glsl: `
+      #define SHADER_NAME slideUp
 
-      uniform float translateX;
-      uniform float translateY;
+      uniform vec2 direction; // = vec2(1.0, 0.0)
 
-      void main() {
-          vec2 texCoord = gl_FragCoord.xy / resolution.xy;
-          float x = progress * translateX;
-          float y = progress * translateY;
-
-          if (x >= 0.0 && y >= 0.0) {
-              if (texCoord.x >= x && texCoord.y >= y) {
-                  gl_FragColor = texture2D(from, texCoord - vec2(x, y));
-              }
-              else {
-                  vec2 uv;
-                  if (x > 0.0)
-                      uv = vec2(x - 1.0, y);
-                  else if (y > 0.0)
-                      uv = vec2(x, y - 1.0);
-                  gl_FragColor = texture2D(to, texCoord - uv);
-              }
-          }
-          else if (x <= 0.0 && y <= 0.0) {
-              if (texCoord.x <= (1.0 + x) && texCoord.y <= (1.0 + y))
-                  gl_FragColor = texture2D(from, texCoord - vec2(x, y));
-              else {
-                  vec2 uv;
-                  if (x < 0.0)
-                      uv = vec2(x + 1.0, y);
-                  else if (y < 0.0)
-                      uv = vec2(x, y + 1.0);
-                  gl_FragColor = texture2D(to, texCoord - uv);
-              }
-          }
-          else
-              gl_FragColor = vec4(0.0);
+      vec4 transition (vec2 uv) {
+        vec2 p = uv + progress * sign(direction);
+        vec2 f = fract(p);
+        return mix(
+          getToColor(f),
+          getFromColor(f),
+          step(0.0, p.y) * step(p.y, 1.0) * step(0.0, p.x) * step(p.x, 1.0)
+        );
       }
     `,
-    uniforms: {
-      translateX: 0,
-      translateY: 1,
-    },
   },
   slideDown: {
-    shader: `
-      #ifdef GL_ES
-      precision highp float;
-      #endif
-      uniform sampler2D from, to;
-      uniform float progress;
-      uniform vec2 resolution;
+    name: 'slideDown',
+    paramsTypes: {
+      direction: 'vec2',
+    },
+    defaultParams: {
+      direction: [0, 1],
+    },
+    glsl: `
+      #define SHADER_NAME slideDown
 
-      uniform float translateX;
-      uniform float translateY;
+      uniform vec2 direction; // = vec2(1.0, 0.0)
 
-      void main() {
-          vec2 texCoord = gl_FragCoord.xy / resolution.xy;
-          float x = progress * translateX;
-          float y = progress * translateY;
-
-          if (x >= 0.0 && y >= 0.0) {
-              if (texCoord.x >= x && texCoord.y >= y) {
-                  gl_FragColor = texture2D(from, texCoord - vec2(x, y));
-              }
-              else {
-                  vec2 uv;
-                  if (x > 0.0)
-                      uv = vec2(x - 1.0, y);
-                  else if (y > 0.0)
-                      uv = vec2(x, y - 1.0);
-                  gl_FragColor = texture2D(to, texCoord - uv);
-              }
-          }
-          else if (x <= 0.0 && y <= 0.0) {
-              if (texCoord.x <= (1.0 + x) && texCoord.y <= (1.0 + y))
-                  gl_FragColor = texture2D(from, texCoord - vec2(x, y));
-              else {
-                  vec2 uv;
-                  if (x < 0.0)
-                      uv = vec2(x + 1.0, y);
-                  else if (y < 0.0)
-                      uv = vec2(x, y + 1.0);
-                  gl_FragColor = texture2D(to, texCoord - uv);
-              }
-          }
-          else
-              gl_FragColor = vec4(0.0);
+      vec4 transition (vec2 uv) {
+        vec2 p = uv + progress * sign(direction);
+        vec2 f = fract(p);
+        return mix(
+          getToColor(f),
+          getFromColor(f),
+          step(0.0, p.y) * step(p.y, 1.0) * step(0.0, p.x) * step(p.x, 1.0)
+        );
       }
     `,
-    uniforms: {
-      translateX: 0,
-      translateY: -1,
-    },
   },
-  // slideLeft: {
-  //   shader: `
-  //     #ifdef GL_ES
-  //     precision highp float;
-  //     #endif
-  //     uniform sampler2D from, to;
-  //     uniform float progress;
-  //     uniform vec2 resolution;
-
-  //     uniform float translateX;
-  //     uniform float translateY;
-
-  //     void main() {
-  //         vec2 texCoord = gl_FragCoord.xy / resolution.xy;
-  //         float x = progress * translateX;
-  //         float y = progress * translateY;
-
-  //         if (x >= 0.0 && y >= 0.0) {
-  //             if (texCoord.x >= x && texCoord.y >= y) {
-  //                 gl_FragColor = texture2D(from, texCoord - vec2(x, y));
-  //             }
-  //             else {
-  //                 vec2 uv;
-  //                 if (x > 0.0)
-  //                     uv = vec2(x - 1.0, y);
-  //                 else if (y > 0.0)
-  //                     uv = vec2(x, y - 1.0);
-  //                 gl_FragColor = texture2D(to, texCoord - uv);
-  //             }
-  //         }
-  //         else if (x <= 0.0 && y <= 0.0) {
-  //             if (texCoord.x <= (1.0 + x) && texCoord.y <= (1.0 + y))
-  //                 gl_FragColor = texture2D(from, texCoord - vec2(x, y));
-  //             else {
-  //                 vec2 uv;
-  //                 if (x < 0.0)
-  //                     uv = vec2(x + 1.0, y);
-  //                 else if (y < 0.0)
-  //                     uv = vec2(x, y + 1.0);
-  //                 gl_FragColor = texture2D(to, texCoord - uv);
-  //             }
-  //         }
-  //         else
-  //             gl_FragColor = vec4(0.0);
-  //     }
-  //   `,
-  //   uniforms: {
-  //     translateX: 1,
-  //     translateY: 0,
-  //   },
-  // },
   slideLeft: {
     name: 'slideLeft',
     paramsTypes: {
-      translateX: 'float',
-      translateY: 'float',
+      direction: 'vec2',
     },
     defaultParams: {
-      translateX: 1,
-      translateY: 0,
+      direction: [1, 0],
     },
     glsl: `
-      uniform float power; // = 5.0
+      #define SHADER_NAME slideLeft
 
-      vec4 transition(vec2 p) {
-        vec4 fTex = getFromColor(p);
-        vec4 tTex = getToColor(p);
+      uniform vec2 direction; // = vec2(1.0, 0.0)
 
-        float m = step(distance(fTex, tTex), progress);
-
+      vec4 transition (vec2 uv) {
+        vec2 p = uv + progress * sign(direction);
+        vec2 f = fract(p);
         return mix(
-          mix(fTex, tTex, m),
-          tTex,
-          pow(progress, power)
+          getToColor(f),
+          getFromColor(f),
+          step(0.0, p.y) * step(p.y, 1.0) * step(0.0, p.x) * step(p.x, 1.0)
         );
       }
     `,
   },
   slideRight: {
-    shader: `
-      #ifdef GL_ES
-      precision highp float;
-      #endif
-      uniform sampler2D from, to;
-      uniform float progress;
-      uniform vec2 resolution;
+    name: 'slideRight',
+    paramsTypes: {
+      direction: 'vec2',
+    },
+    defaultParams: {
+      direction: [-1, 0],
+    },
+    glsl: `
+      #define SHADER_NAME slideRight
 
-      uniform float translateX;
-      uniform float translateY;
+      uniform vec2 direction; // = vec2(1.0, 0.0)
 
-      void main() {
-          vec2 texCoord = gl_FragCoord.xy / resolution.xy;
-          float x = progress * translateX;
-          float y = progress * translateY;
-
-          if (x >= 0.0 && y >= 0.0) {
-              if (texCoord.x >= x && texCoord.y >= y) {
-                  gl_FragColor = texture2D(from, texCoord - vec2(x, y));
-              }
-              else {
-                  vec2 uv;
-                  if (x > 0.0)
-                      uv = vec2(x - 1.0, y);
-                  else if (y > 0.0)
-                      uv = vec2(x, y - 1.0);
-                  gl_FragColor = texture2D(to, texCoord - uv);
-              }
-          }
-          else if (x <= 0.0 && y <= 0.0) {
-              if (texCoord.x <= (1.0 + x) && texCoord.y <= (1.0 + y))
-                  gl_FragColor = texture2D(from, texCoord - vec2(x, y));
-              else {
-                  vec2 uv;
-                  if (x < 0.0)
-                      uv = vec2(x + 1.0, y);
-                  else if (y < 0.0)
-                      uv = vec2(x, y + 1.0);
-                  gl_FragColor = texture2D(to, texCoord - uv);
-              }
-          }
-          else
-              gl_FragColor = vec4(0.0);
+      vec4 transition (vec2 uv) {
+        vec2 p = uv + progress * sign(direction);
+        vec2 f = fract(p);
+        return mix(
+          getToColor(f),
+          getFromColor(f),
+          step(0.0, p.y) * step(p.y, 1.0) * step(0.0, p.x) * step(p.x, 1.0)
+        );
       }
     `,
-    uniforms: {
-      translateX: -1,
-      translateY: 0,
-    },
   },
 };
 

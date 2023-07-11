@@ -396,11 +396,15 @@ class Showy {
       this._renderContext.UNPACK_FLIP_Y_WEBGL,
       true
     );
-    const buffer = this._renderContext.createBuffer();
-    this._renderContext.bindBuffer(this._renderContext.ARRAY_BUFFER, buffer);
+
+    this._buffer = this._renderContext.createBuffer();
+    this._renderContext.bindBuffer(
+      this._renderContext.ARRAY_BUFFER,
+      this._buffer
+    );
     this._renderContext.bufferData(
       this._renderContext.ARRAY_BUFFER,
-      new Float32Array([-1, -1, -1, 4, 4, -1]), // see a-big-triangle
+      new Float32Array([-1, -1, -1, 3, 3, -1]), // see a-big-triangle
       this._renderContext.STATIC_DRAW
     );
 
@@ -588,7 +592,8 @@ class Showy {
 
         this._transition = createTransition(
           this._renderContext,
-          this._transitionOptions.glsl
+          this._transitionOptions.glsl,
+          { resizeMode: 'cover' }
         );
       }
 
@@ -627,6 +632,8 @@ class Showy {
         easedTransitionProgress,
         this._fromTexture,
         this._toTexture,
+        this._width,
+        this._height,
         this._transitionOptions.glsl.defaultParams
       );
     } else {
@@ -634,12 +641,26 @@ class Showy {
       if (!this._transition) {
         this._transition = createTransition(
           this._renderContext,
-          TRANSITION_NONE
+          TRANSITION_NONE,
+          { resizeMode: 'cover' }
         );
       }
 
-      this._transition.draw(1, this._fromTexture, this._toTexture);
+      this._transition.draw(
+        1,
+        this._fromTexture,
+        this._toTexture,
+        this._width,
+        this._height
+      );
     }
+
+    this._renderContext.viewport(
+      0,
+      0,
+      this._renderContext.drawingBufferWidth,
+      this._renderContext.drawingBufferHeight
+    );
 
     // We have rendered the current slide for the first time
     if (currentSlide._ready) {
@@ -690,9 +711,6 @@ class Showy {
       0;
     slide._rendered = false;
     slide._ready = false;
-    if (!slide._loaded) {
-      slide._loaded = false;
-    }
 
     if (slide.background) {
       context.fillStyle = slide.background;
@@ -714,6 +732,7 @@ class Showy {
         slide._loaded = true;
         this._slideLoaded(slide, this._slides.indexOf(slide));
       }
+
       return;
     }
 

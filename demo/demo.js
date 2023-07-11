@@ -89,8 +89,8 @@ var config = {
         return this.content[0];
       },
       transitionNext: {
-        name: 'slideLeft',
-        duration: 800,
+        name: 'none',
+        duration: 0,
       },
       background: '#FFFFFF',
       content: [
